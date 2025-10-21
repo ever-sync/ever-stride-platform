@@ -1,0 +1,721 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
+  }
+  public: {
+    Tables: {
+      chat_messages: {
+        Row: {
+          active: boolean | null
+          bot_message: string | null
+          chat_id: number | null
+          created_at: string | null
+          id: number
+          message_type: string | null
+          nomewpp: string | null
+          phone: string | null
+          user_message: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          bot_message?: string | null
+          chat_id?: number | null
+          created_at?: string | null
+          id?: number
+          message_type?: string | null
+          nomewpp?: string | null
+          phone?: string | null
+          user_message?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          bot_message?: string | null
+          chat_id?: number | null
+          created_at?: string | null
+          id?: number
+          message_type?: string | null
+          nomewpp?: string | null
+          phone?: string | null
+          user_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chats: {
+        Row: {
+          created_at: string | null
+          end_user_id: number | null
+          id: number
+          phone: string | null
+          tenant_id: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_user_id?: number | null
+          id?: number
+          phone?: string | null
+          tenant_id?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_user_id?: number | null
+          id?: number
+          phone?: string | null
+          tenant_id?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chats_end_user_id_fkey"
+            columns: ["end_user_id"]
+            isOneToOne: false
+            referencedRelation: "end_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      end_users: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: number
+          meta: Json | null
+          nome: string | null
+          tags: string[] | null
+          telefone: string
+          tenant_id: number
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: number
+          meta?: Json | null
+          nome?: string | null
+          tags?: string[] | null
+          telefone: string
+          tenant_id: number
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: number
+          meta?: Json | null
+          nome?: string | null
+          tags?: string[] | null
+          telefone?: string
+          tenant_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "end_users_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ia_config: {
+        Row: {
+          ativo: boolean
+          canais: Json | null
+          created_at: string
+          horario_atend: unknown | null
+          id: number
+          idioma: string | null
+          limites: Json | null
+          meta: Json | null
+          modelo: string | null
+          prompt_sistema: string | null
+          temperatura: number | null
+          tenant_id: number
+          tom_de_voz: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          canais?: Json | null
+          created_at?: string
+          horario_atend?: unknown | null
+          id?: number
+          idioma?: string | null
+          limites?: Json | null
+          meta?: Json | null
+          modelo?: string | null
+          prompt_sistema?: string | null
+          temperatura?: number | null
+          tenant_id: number
+          tom_de_voz?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          canais?: Json | null
+          created_at?: string
+          horario_atend?: unknown | null
+          id?: number
+          idioma?: string | null
+          limites?: Json | null
+          meta?: Json | null
+          modelo?: string | null
+          prompt_sistema?: string | null
+          temperatura?: number | null
+          tenant_id?: number
+          tom_de_voz?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ia_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      relatorios_custos: {
+        Row: {
+          conversas: number
+          custo_bruto: number
+          custo_final: number
+          desconto_franquia: number
+          execucoes: number
+          gerado_em: string
+          id: number
+          imposto_percent: number
+          imposto_valor: number
+          llm_modelo: string | null
+          mensagens: number
+          minimo_mensal_aplicado: boolean
+          moeda: string
+          payload: Json | null
+          periodo_fim: string
+          periodo_inicio: string
+          tenant_id: number
+          tokens_cobrados: number
+          tokens_total: number
+          valor_por_token: number
+        }
+        Insert: {
+          conversas: number
+          custo_bruto: number
+          custo_final: number
+          desconto_franquia?: number
+          execucoes?: number
+          gerado_em?: string
+          id?: number
+          imposto_percent?: number
+          imposto_valor?: number
+          llm_modelo?: string | null
+          mensagens: number
+          minimo_mensal_aplicado?: boolean
+          moeda?: string
+          payload?: Json | null
+          periodo_fim: string
+          periodo_inicio: string
+          tenant_id: number
+          tokens_cobrados: number
+          tokens_total: number
+          valor_por_token: number
+        }
+        Update: {
+          conversas?: number
+          custo_bruto?: number
+          custo_final?: number
+          desconto_franquia?: number
+          execucoes?: number
+          gerado_em?: string
+          id?: number
+          imposto_percent?: number
+          imposto_valor?: number
+          llm_modelo?: string | null
+          mensagens?: number
+          minimo_mensal_aplicado?: boolean
+          moeda?: string
+          payload?: Json | null
+          periodo_fim?: string
+          periodo_inicio?: string
+          tenant_id?: number
+          tokens_cobrados?: number
+          tokens_total?: number
+          valor_por_token?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relatorios_custos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      relatorios_execucoes: {
+        Row: {
+          accuracy: number | null
+          completion_tokens: number | null
+          created_at: string
+          execution_time: number | null
+          ia_config_id: number | null
+          id: number
+          meta: Json | null
+          model_used: string | null
+          payload: Json | null
+          prompt_tokens: number | null
+          run_at: string
+          run_number: number
+          status: string
+          tenant_id: number
+          total_tokens: number | null
+        }
+        Insert: {
+          accuracy?: number | null
+          completion_tokens?: number | null
+          created_at?: string
+          execution_time?: number | null
+          ia_config_id?: number | null
+          id?: number
+          meta?: Json | null
+          model_used?: string | null
+          payload?: Json | null
+          prompt_tokens?: number | null
+          run_at?: string
+          run_number: number
+          status?: string
+          tenant_id: number
+          total_tokens?: number | null
+        }
+        Update: {
+          accuracy?: number | null
+          completion_tokens?: number | null
+          created_at?: string
+          execution_time?: number | null
+          ia_config_id?: number | null
+          id?: number
+          meta?: Json | null
+          model_used?: string | null
+          payload?: Json | null
+          prompt_tokens?: number | null
+          run_at?: string
+          run_number?: number
+          status?: string
+          tenant_id?: number
+          total_tokens?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relatorios_execucoes_ia_config_id_fkey"
+            columns: ["ia_config_id"]
+            isOneToOne: false
+            referencedRelation: "ia_config"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relatorios_execucoes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_billing_config: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          franquia_tokens_mensal: number | null
+          id: number
+          impostos_percent: number | null
+          meta: Json | null
+          minimo_mensal: number | null
+          moeda: string
+          tenant_id: number
+          valor_por_token: number
+          vigencia_fim: string | null
+          vigencia_inicio: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          franquia_tokens_mensal?: number | null
+          id?: number
+          impostos_percent?: number | null
+          meta?: Json | null
+          minimo_mensal?: number | null
+          moeda?: string
+          tenant_id: number
+          valor_por_token: number
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          franquia_tokens_mensal?: number | null
+          id?: number
+          impostos_percent?: number | null
+          meta?: Json | null
+          minimo_mensal?: number | null
+          moeda?: string
+          tenant_id?: number
+          valor_por_token?: number
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_billing_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          created_at: string
+          documento: string | null
+          email: string | null
+          id: number
+          meta: Json | null
+          nome: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          documento?: string | null
+          email?: string | null
+          id?: number
+          meta?: Json | null
+          nome: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          documento?: string | null
+          email?: string | null
+          id?: number
+          meta?: Json | null
+          nome?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      vw_custos_periodo_base: {
+        Row: {
+          conversas: number | null
+          custo_bruto: number | null
+          custo_final: number | null
+          desconto_franquia: number | null
+          dia_ref: string | null
+          execucoes: number | null
+          gerado_em: string | null
+          id: number | null
+          imposto_percent: number | null
+          imposto_valor: number | null
+          llm_modelo: string | null
+          mensagens: number | null
+          mes_ref: string | null
+          minimo_mensal_aplicado: boolean | null
+          moeda: string | null
+          payload: Json | null
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          tenant_id: number | null
+          tenant_nome: string | null
+          tokens_cobrados: number | null
+          tokens_total: number | null
+          valor_por_token: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relatorios_custos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_custos_tenant_diario: {
+        Row: {
+          conversas: number | null
+          custo_bruto: number | null
+          custo_final: number | null
+          desconto_franquia: number | null
+          dia_ref: string | null
+          execucoes: number | null
+          imposto_percent: number | null
+          imposto_valor: number | null
+          llm_modelo: string | null
+          mensagens: number | null
+          minimo_mensal_aplicado: boolean | null
+          moeda: string | null
+          tenant_id: number | null
+          tenant_nome: string | null
+          tokens_cobrados: number | null
+          tokens_total: number | null
+          valor_por_token: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relatorios_custos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_custos_tenant_mensal: {
+        Row: {
+          conversas: number | null
+          custo_bruto: number | null
+          custo_final: number | null
+          desconto_franquia: number | null
+          execucoes: number | null
+          imposto_percent: number | null
+          imposto_valor: number | null
+          llm_modelo: string | null
+          mensagens: number | null
+          mes_ref: string | null
+          minimo_mensal_aplicado: boolean | null
+          moeda: string | null
+          tenant_id: number | null
+          tenant_nome: string | null
+          tokens_cobrados: number | null
+          tokens_total: number | null
+          valor_por_token: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relatorios_custos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Functions: {
+      criar_end_user_e_vinculos: {
+        Args: {
+          p_bot_message?: string
+          p_criar_chat?: boolean
+          p_email?: string
+          p_nome: string
+          p_telefone: string
+          p_tenant_id: number
+          p_user_message?: string
+        }
+        Returns: {
+          chat_id: number
+          end_user_id: number
+        }[]
+      }
+      criar_end_user_por_tenant_nome: {
+        Args: {
+          p_bot_message?: string
+          p_criar_chat?: boolean
+          p_email?: string
+          p_nome: string
+          p_telefone: string
+          p_tenant_email?: string
+          p_tenant_nome: string
+          p_user_message?: string
+        }
+        Returns: {
+          chat_id: number
+          end_user_id: number
+        }[]
+      }
+      gerar_relatorio_custos_tenant: {
+        Args: {
+          p_fim: string
+          p_inicio: string
+          p_tenant_id: number
+          p_titulo?: string
+        }
+        Returns: number
+      }
+      gerar_relatorio_custos_todos: {
+        Args: { p_fim: string; p_inicio: string; p_titulo?: string }
+        Returns: {
+          relatorio_id: number
+          tenant_id: number
+        }[]
+      }
+      get_or_create_tenant: {
+        Args: { p_email?: string; p_nome: string }
+        Returns: number
+      }
+      log_execucao_llm: {
+        Args: {
+          p_accuracy?: number
+          p_completion_tokens: number
+          p_execution_time: number
+          p_ia_config_id?: number
+          p_model_used: string
+          p_payload?: Json
+          p_prompt_tokens: number
+          p_status?: string
+          p_tenant_id: number
+        }
+        Returns: number
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
