@@ -190,6 +190,33 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       relatorios_custos: {
         Row: {
           conversas: number
@@ -389,6 +416,53 @@ export type Database = {
           },
         ]
       }
+      tenant_users: {
+        Row: {
+          created_at: string
+          id: string
+          invited_at: string | null
+          invited_by: string | null
+          is_active: boolean
+          joined_at: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          is_active?: boolean
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          tenant_id: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          is_active?: boolean
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          tenant_id?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_users_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           created_at: string
@@ -421,6 +495,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      user_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id: number
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          invited_by: string
+          role?: Database["public"]["Enums"]["app_role"]
+          tenant_id: number
+          token: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          tenant_id?: number
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_invitations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -522,6 +640,18 @@ export type Database = {
       }
     }
     Functions: {
+      can_user_write: {
+        Args: { _tenant_id: number; _user_id: string }
+        Returns: boolean
+      }
+      create_tenant_with_owner: {
+        Args: {
+          p_tenant_email: string
+          p_tenant_name: string
+          p_user_id: string
+        }
+        Returns: number
+      }
       criar_end_user_e_vinculos: {
         Args: {
           p_bot_message?: string
@@ -573,6 +703,18 @@ export type Database = {
         Args: { p_email?: string; p_nome: string }
         Returns: number
       }
+      get_user_tenant_id: {
+        Args: { _user_id: string }
+        Returns: number
+      }
+      has_tenant_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _tenant_id: number
+          _user_id: string
+        }
+        Returns: boolean
+      }
       log_execucao_llm: {
         Args: {
           p_accuracy?: number
@@ -589,7 +731,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "OWNER" | "ADMIN" | "ANALYST" | "SUPPORT"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -716,6 +858,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["OWNER", "ADMIN", "ANALYST", "SUPPORT"],
+    },
   },
 } as const
