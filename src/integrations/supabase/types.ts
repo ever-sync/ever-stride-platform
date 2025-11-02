@@ -139,7 +139,7 @@ export type Database = {
           ativo: boolean
           canais: Json | null
           created_at: string
-          horario_atend: unknown | null
+          horario_atend: unknown
           id: number
           idioma: string | null
           limites: Json | null
@@ -154,7 +154,7 @@ export type Database = {
           ativo?: boolean
           canais?: Json | null
           created_at?: string
-          horario_atend?: unknown | null
+          horario_atend?: unknown
           id?: number
           idioma?: string | null
           limites?: Json | null
@@ -169,7 +169,7 @@ export type Database = {
           ativo?: boolean
           canais?: Json | null
           created_at?: string
-          horario_atend?: unknown | null
+          horario_atend?: unknown
           id?: number
           idioma?: string | null
           limites?: Json | null
@@ -540,6 +540,83 @@ export type Database = {
           },
         ]
       }
+      whatsapp_clients: {
+        Row: {
+          api_key: string | null
+          ativo: boolean | null
+          cnpj: string | null
+          created_at: string
+          email: string
+          id: string
+          limite_mensagens_mes: number | null
+          mensagens_usadas_mes: number | null
+          nome_agente: string | null
+          nome_empresa: string
+          plano: string | null
+          saudacao_inicial: string | null
+          script_atendimento: string
+          telefone: string | null
+          tenant_id: number
+          updated_at: string
+          waha_session_id: string | null
+          waha_status: string | null
+          waha_webhook_url: string | null
+          whatsapp_numero: string
+        }
+        Insert: {
+          api_key?: string | null
+          ativo?: boolean | null
+          cnpj?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          limite_mensagens_mes?: number | null
+          mensagens_usadas_mes?: number | null
+          nome_agente?: string | null
+          nome_empresa: string
+          plano?: string | null
+          saudacao_inicial?: string | null
+          script_atendimento: string
+          telefone?: string | null
+          tenant_id: number
+          updated_at?: string
+          waha_session_id?: string | null
+          waha_status?: string | null
+          waha_webhook_url?: string | null
+          whatsapp_numero: string
+        }
+        Update: {
+          api_key?: string | null
+          ativo?: boolean | null
+          cnpj?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          limite_mensagens_mes?: number | null
+          mensagens_usadas_mes?: number | null
+          nome_agente?: string | null
+          nome_empresa?: string
+          plano?: string | null
+          saudacao_inicial?: string | null
+          script_atendimento?: string
+          telefone?: string | null
+          tenant_id?: number
+          updated_at?: string
+          waha_session_id?: string | null
+          waha_status?: string | null
+          waha_webhook_url?: string | null
+          whatsapp_numero?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_clients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       vw_custos_periodo_base: {
@@ -703,10 +780,7 @@ export type Database = {
         Args: { p_email?: string; p_nome: string }
         Returns: number
       }
-      get_user_tenant_id: {
-        Args: { _user_id: string }
-        Returns: number
-      }
+      get_user_tenant_id: { Args: { _user_id: string }; Returns: number }
       has_tenant_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

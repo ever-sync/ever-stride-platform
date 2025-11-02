@@ -9,6 +9,7 @@ import { AppShell } from "@/components/AppShell";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import WhatsAppClients from "./pages/WhatsAppClients";
 import Chats from "./pages/Chats";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
@@ -35,6 +36,16 @@ const App = () => (
                 <AuthGuard>
                   <AppShell>
                     <Dashboard />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/whatsapp-clients"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <WhatsAppClients />
                   </AppShell>
                 </AuthGuard>
               }

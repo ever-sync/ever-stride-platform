@@ -28,6 +28,7 @@ interface AppShellProps {
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Clientes WhatsApp", href: "/whatsapp-clients", icon: MessageSquare },
   { name: "Chats", href: "/chats", icon: MessageSquare },
   { name: "Relatórios", href: "/reports", icon: FileText },
   { name: "Configurações", href: "/settings", icon: Settings },

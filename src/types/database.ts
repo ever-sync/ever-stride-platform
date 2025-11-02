@@ -10,6 +10,7 @@ export type IAConfig = Tables<"ia_config">;
 export type BillingConfig = Tables<"tenant_billing_config">;
 export type CostReport = Tables<"relatorios_custos">;
 export type ExecutionReport = Tables<"relatorios_execucoes">;
+export type WhatsAppClient = Tables<"whatsapp_clients">;
 
 export type UserRole = "OWNER" | "ADMIN" | "ANALYST" | "SUPPORT";
 
