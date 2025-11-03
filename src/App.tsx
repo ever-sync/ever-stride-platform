@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import WhatsAppClients from "./pages/WhatsAppClients";
 import Chats from "./pages/Chats";
 import Reports from "./pages/Reports";
+import ClientReports from "./pages/ClientReports";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
 import Integrations from "./pages/Integrations";
@@ -66,6 +67,16 @@ const App = () => (
                 <AuthGuard>
                   <AppShell>
                     <Reports />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/client-reports"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <ClientReports />
                   </AppShell>
                 </AuthGuard>
               }

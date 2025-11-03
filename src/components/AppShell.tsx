@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,13 @@ import {
   Users,
   Zap,
   LogOut,
+  Moon,
+  Sun,
+  Menu,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import logo from "@/assets/logo.png";
 
 interface AppShellProps {
   children: ReactNode;
@@ -31,6 +36,7 @@ const navigation = [
   { name: "Clientes WhatsApp", href: "/whatsapp-clients", icon: MessageSquare },
   { name: "Chats", href: "/chats", icon: MessageSquare },
   { name: "Relatórios", href: "/reports", icon: FileText },
+  { name: "Relatórios por Cliente", href: "/client-reports", icon: FileText },
   { name: "Configurações", href: "/settings", icon: Settings },
   { name: "Equipe", href: "/users", icon: Users },
   { name: "Integrações", href: "/integrations", icon: Zap },
@@ -39,6 +45,13 @@ const navigation = [
 export function AppShell({ children }: AppShellProps) {
   const { userSession, signOut } = useAuth();
   const location = useLocation();
+  const [isDark, setIsDark] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    document.documentElement.classList.toggle("dark");
+  };
 
   const initials = userSession?.profile?.full_name
     ? userSession.profile.full_name
@@ -51,14 +64,27 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen bg-background">
+      {/* Mobile menu button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-3 left-3 z-50 lg:hidden"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+      >
+        {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </Button>
+
       {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-card transition-transform">
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 w-64 border-r border-border bg-card transition-transform duration-300",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        )}
+      >
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center border-b border-border px-6">
-            <h1 className="text-xl font-bold gradient-primary bg-clip-text text-transparent">
-              EverSync
-            </h1>
+            <img src={logo} alt="Construtor de IA" className="h-8 w-auto" />
           </div>
 
           {/* Navigation */}
@@ -94,17 +120,25 @@ export function AppShell({ children }: AppShellProps) {
       </aside>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col pl-64">
+      <div className="flex flex-1 flex-col lg:pl-64">
         {/* Header */}
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-card/95 backdrop-blur px-6">
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card/95 backdrop-blur px-4 sm:px-6">
+          <div className="flex items-center gap-4 pl-12 lg:pl-0">
+            <h2 className="text-base sm:text-lg font-semibold truncate">
               {navigation.find((item) => location.pathname.startsWith(item.href))?.name ||
-                "EverSync"}
+                "Construtor de IA"}
             </h2>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="h-9 w-9"
+            >
+              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -137,8 +171,16 @@ export function AppShell({ children }: AppShellProps) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-6">{children}</main>
       </div>
+
+      {/* Mobile overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
     </div>
   );
 }
