@@ -64,7 +64,7 @@ export type Database = {
           end_user_id: number | null
           id: number
           phone: string | null
-          tenant_id: number | null
+          tenant_id: number
           updated_at: string | null
         }
         Insert: {
@@ -72,7 +72,7 @@ export type Database = {
           end_user_id?: number | null
           id?: number
           phone?: string | null
-          tenant_id?: number | null
+          tenant_id: number
           updated_at?: string | null
         }
         Update: {
@@ -80,7 +80,7 @@ export type Database = {
           end_user_id?: number | null
           id?: number
           phone?: string | null
-          tenant_id?: number | null
+          tenant_id?: number
           updated_at?: string | null
         }
         Relationships: [
@@ -91,35 +91,89 @@ export type Database = {
             referencedRelation: "end_users"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_chats_end_user"
+            columns: ["end_user_id"]
+            isOneToOne: false
+            referencedRelation: "end_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          content: string
+          created_at: string
+          embedding: string | null
+          fts: unknown
+          id: number
+          metadata: Json | null
+          tenant_id: number
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          embedding?: string | null
+          fts?: unknown
+          id?: number
+          metadata?: Json | null
+          tenant_id: number
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          embedding?: string | null
+          fts?: unknown
+          id?: number
+          metadata?: Json | null
+          tenant_id?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
         ]
       }
       end_users: {
         Row: {
+          atendimento_ia: string | null
           created_at: string
           email: string | null
           id: number
           meta: Json | null
           nome: string | null
+          setor: string | null
           tags: string[] | null
           telefone: string
           tenant_id: number
         }
         Insert: {
+          atendimento_ia?: string | null
           created_at?: string
           email?: string | null
           id?: number
           meta?: Json | null
           nome?: string | null
+          setor?: string | null
           tags?: string[] | null
           telefone: string
           tenant_id: number
         }
         Update: {
+          atendimento_ia?: string | null
           created_at?: string
           email?: string | null
           id?: number
           meta?: Json | null
           nome?: string | null
+          setor?: string | null
           tags?: string[] | null
           telefone?: string
           tenant_id?: number
@@ -183,6 +237,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ia_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      n8n_chat_histories: {
+        Row: {
+          created_at: string
+          id: number
+          message: Json
+          session_id: string
+          tenant_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          message: Json
+          session_id: string
+          tenant_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          message?: Json
+          session_id?: string
+          tenant_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "n8n_chat_histories_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -789,6 +875,24 @@ export type Database = {
         }
         Returns: boolean
       }
+      hybrid_search: {
+        Args: {
+          full_text_weight?: number
+          match_count?: number
+          p_tenant_id: number
+          query_embedding: string
+          query_text: string
+          rrf_k?: number
+          semantic_weight?: number
+        }
+        Returns: {
+          content: string
+          id: number
+          metadata: Json
+          rank: number
+          score: number
+        }[]
+      }
       log_execucao_llm: {
         Args: {
           p_accuracy?: number
@@ -802,6 +906,19 @@ export type Database = {
           p_tenant_id: number
         }
         Returns: number
+      }
+      log_n8n_message: {
+        Args: { p_message: Json; p_session_id: string; p_tenant_id: number }
+        Returns: number
+      }
+      search_documents: {
+        Args: { p_embedding: string; p_limit?: number; p_tenant_id: number }
+        Returns: {
+          content: string
+          id: number
+          metadata: Json
+          similarity: number
+        }[]
       }
     }
     Enums: {
