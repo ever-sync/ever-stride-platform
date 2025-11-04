@@ -9,7 +9,9 @@ import { AppShell } from "@/components/AppShell";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-import WhatsAppClients from "./pages/WhatsAppClients";
+import Clients from "./pages/Clients";
+import Agents from "./pages/Agents";
+import KnowledgeBase from "./pages/KnowledgeBase";
 import Chats from "./pages/Chats";
 import Reports from "./pages/Reports";
 import ClientReports from "./pages/ClientReports";
@@ -29,6 +31,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/whatsapp-clients" element={<Navigate to="/clients" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route
@@ -42,11 +45,31 @@ const App = () => (
               }
             />
             <Route
-              path="/whatsapp-clients"
+              path="/clients"
               element={
                 <AuthGuard>
                   <AppShell>
-                    <WhatsAppClients />
+                    <Clients />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/agents"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <Agents />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/knowledge-base"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <KnowledgeBase />
                   </AppShell>
                 </AuthGuard>
               }

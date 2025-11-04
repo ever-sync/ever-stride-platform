@@ -36,9 +36,8 @@ export function useWhatsAppClients() {
       const total = data?.length || 0;
       const ativos = data?.filter(c => c.ativo).length || 0;
       const inativos = total - ativos;
-      const totalMensagens = data?.reduce((acc, c) => acc + (c.mensagens_usadas_mes || 0), 0) || 0;
       
-      setStats({ total, ativos, inativos, totalMensagens });
+      setStats({ total, ativos, inativos, totalMensagens: 0 });
     } catch (error) {
       console.error('Error loading WhatsApp clients:', error);
       toast({

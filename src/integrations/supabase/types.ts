@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      agents: {
+        Row: {
+          ativo: boolean | null
+          client_id: string
+          codigo_ativar_ia: string | null
+          codigo_avaliacao: string | null
+          codigo_envio_grupo: string | null
+          codigo_pausar_ia: string | null
+          codigo_resetar_bd: string | null
+          codigo_transferencia: string | null
+          created_at: string
+          id: string
+          limite_mensagens_mes: number | null
+          mensagens_usadas_mes: number | null
+          nome_agente: string
+          saudacao_inicial: string | null
+          script_atendimento: string
+          tenant_id: number
+          updated_at: string
+          workflow_id: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          client_id: string
+          codigo_ativar_ia?: string | null
+          codigo_avaliacao?: string | null
+          codigo_envio_grupo?: string | null
+          codigo_pausar_ia?: string | null
+          codigo_resetar_bd?: string | null
+          codigo_transferencia?: string | null
+          created_at?: string
+          id?: string
+          limite_mensagens_mes?: number | null
+          mensagens_usadas_mes?: number | null
+          nome_agente?: string
+          saudacao_inicial?: string | null
+          script_atendimento: string
+          tenant_id: number
+          updated_at?: string
+          workflow_id?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          client_id?: string
+          codigo_ativar_ia?: string | null
+          codigo_avaliacao?: string | null
+          codigo_envio_grupo?: string | null
+          codigo_pausar_ia?: string | null
+          codigo_resetar_bd?: string | null
+          codigo_transferencia?: string | null
+          created_at?: string
+          id?: string
+          limite_mensagens_mes?: number | null
+          mensagens_usadas_mes?: number | null
+          nome_agente?: string
+          saudacao_inicial?: string | null
+          script_atendimento?: string
+          tenant_id?: number
+          updated_at?: string
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           active: boolean | null
@@ -102,6 +180,7 @@ export type Database = {
       }
       documents: {
         Row: {
+          agent_id: string | null
           content: string
           created_at: string
           embedding: string | null
@@ -112,6 +191,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agent_id?: string | null
           content: string
           created_at?: string
           embedding?: string | null
@@ -122,6 +202,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agent_id?: string | null
           content?: string
           created_at?: string
           embedding?: string | null
@@ -132,6 +213,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "documents_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "documents_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -634,13 +722,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
-          limite_mensagens_mes: number | null
-          mensagens_usadas_mes: number | null
-          nome_agente: string | null
           nome_empresa: string
-          plano: string | null
-          saudacao_inicial: string | null
-          script_atendimento: string
           telefone: string | null
           tenant_id: number
           updated_at: string
@@ -656,13 +738,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
-          limite_mensagens_mes?: number | null
-          mensagens_usadas_mes?: number | null
-          nome_agente?: string | null
           nome_empresa: string
-          plano?: string | null
-          saudacao_inicial?: string | null
-          script_atendimento: string
           telefone?: string | null
           tenant_id: number
           updated_at?: string
@@ -678,13 +754,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
-          limite_mensagens_mes?: number | null
-          mensagens_usadas_mes?: number | null
-          nome_agente?: string | null
           nome_empresa?: string
-          plano?: string | null
-          saudacao_inicial?: string | null
-          script_atendimento?: string
           telefone?: string | null
           tenant_id?: number
           updated_at?: string

@@ -23,6 +23,9 @@ import {
   Sun,
   Menu,
   X,
+  Building2,
+  Bot,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
@@ -33,7 +36,9 @@ interface AppShellProps {
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Clientes WhatsApp", href: "/whatsapp-clients", icon: MessageSquare },
+  { name: "Clientes", href: "/clients", icon: Building2 },
+  { name: "Agentes", href: "/agents", icon: Bot },
+  { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
   { name: "Chats", href: "/chats", icon: MessageSquare },
   { name: "Relatórios", href: "/reports", icon: FileText },
   { name: "Relatórios por Cliente", href: "/client-reports", icon: FileText },
