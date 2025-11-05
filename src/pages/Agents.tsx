@@ -56,6 +56,7 @@ export default function Agents() {
     workflow_id: "",
     nome_agente: "Assistente",
     limite_mensagens_mes: 1000,
+    tempo_atendimento: 30,
     saudacao_inicial: "Olá! Como posso ajudar?",
     script_atendimento: "",
     codigo_transferencia: "",
@@ -90,6 +91,7 @@ export default function Agents() {
       workflow_id: "",
       nome_agente: "Assistente",
       limite_mensagens_mes: 1000,
+      tempo_atendimento: 30,
       saudacao_inicial: "Olá! Como posso ajudar?",
       script_atendimento: "",
       codigo_transferencia: "",
@@ -109,6 +111,7 @@ export default function Agents() {
       workflow_id: agent.workflow_id || "",
       nome_agente: agent.nome_agente,
       limite_mensagens_mes: agent.limite_mensagens_mes || 1000,
+      tempo_atendimento: agent.tempo_atendimento || 30,
       saudacao_inicial: agent.saudacao_inicial || "",
       script_atendimento: agent.script_atendimento,
       codigo_transferencia: agent.codigo_transferencia || "",
@@ -206,6 +209,20 @@ export default function Agents() {
                     value={formData.limite_mensagens_mes}
                     onChange={(e) =>
                       setFormData({ ...formData, limite_mensagens_mes: parseInt(e.target.value) })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tempo_atendimento">Tempo de Atendimento (minutos)</Label>
+                  <Input
+                    id="tempo_atendimento"
+                    type="number"
+                    value={formData.tempo_atendimento}
+                    onChange={(e) =>
+                      setFormData({ ...formData, tempo_atendimento: parseInt(e.target.value) })
                     }
                   />
                 </div>

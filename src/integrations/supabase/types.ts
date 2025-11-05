@@ -31,6 +31,7 @@ export type Database = {
           nome_agente: string
           saudacao_inicial: string | null
           script_atendimento: string
+          tempo_atendimento: number | null
           tenant_id: number
           updated_at: string
           workflow_id: string | null
@@ -51,6 +52,7 @@ export type Database = {
           nome_agente?: string
           saudacao_inicial?: string | null
           script_atendimento: string
+          tempo_atendimento?: number | null
           tenant_id: number
           updated_at?: string
           workflow_id?: string | null
@@ -71,6 +73,7 @@ export type Database = {
           nome_agente?: string
           saudacao_inicial?: string | null
           script_atendimento?: string
+          tempo_atendimento?: number | null
           tenant_id?: number
           updated_at?: string
           workflow_id?: string | null
@@ -237,6 +240,7 @@ export type Database = {
           id: number
           meta: Json | null
           nome: string | null
+          resumo_lead: string | null
           setor: string | null
           tags: string[] | null
           telefone: string
@@ -249,6 +253,7 @@ export type Database = {
           id?: number
           meta?: Json | null
           nome?: string | null
+          resumo_lead?: string | null
           setor?: string | null
           tags?: string[] | null
           telefone: string
@@ -261,6 +266,7 @@ export type Database = {
           id?: number
           meta?: Json | null
           nome?: string | null
+          resumo_lead?: string | null
           setor?: string | null
           tags?: string[] | null
           telefone?: string
