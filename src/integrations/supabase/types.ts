@@ -543,6 +543,30 @@ export type Database = {
           },
         ]
       }
+      super_admins: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       tenant_billing_config: {
         Row: {
           ativo: boolean
@@ -969,6 +993,7 @@ export type Database = {
           score: number
         }[]
       }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       log_execucao_llm: {
         Args: {
           p_accuracy?: number
@@ -998,7 +1023,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "OWNER" | "ADMIN" | "ANALYST" | "SUPPORT"
+      app_role: "OWNER" | "ADMIN" | "ANALYST" | "SUPPORT" | "MASTER"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1126,7 +1151,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["OWNER", "ADMIN", "ANALYST", "SUPPORT"],
+      app_role: ["OWNER", "ADMIN", "ANALYST", "SUPPORT", "MASTER"],
     },
   },
 } as const

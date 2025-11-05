@@ -19,6 +19,7 @@ import Settings from "./pages/Settings";
 import Users from "./pages/Users";
 import Integrations from "./pages/Integrations";
 import NotFound from "./pages/NotFound";
+import MasterAdmin from "./pages/MasterAdmin";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,16 @@ const App = () => (
             <Route path="/whatsapp-clients" element={<Navigate to="/clients" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route
+              path="/master-admin"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <MasterAdmin />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
             <Route
               path="/dashboard"
               element={

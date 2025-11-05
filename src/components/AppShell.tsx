@@ -1,8 +1,10 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsSuperAdmin } from "@/hooks/useIsSuperAdmin";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { TenantSelector } from "@/components/TenantSelector";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +28,7 @@ import {
   Building2,
   Bot,
   BookOpen,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
@@ -34,24 +37,42 @@ interface AppShellProps {
   children: ReactNode;
 }
 
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Clientes", href: "/clients", icon: Building2 },
-  { name: "Agentes", href: "/agents", icon: Bot },
-  { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
-  { name: "Chats", href: "/chats", icon: MessageSquare },
-  { name: "Relatórios", href: "/reports", icon: FileText },
-  { name: "Relatórios por Cliente", href: "/client-reports", icon: FileText },
-  { name: "Configurações", href: "/settings", icon: Settings },
-  { name: "Equipe", href: "/users", icon: Users },
-  { name: "Integrações", href: "/integrations", icon: Zap },
-];
-
 export function AppShell({ children }: AppShellProps) {
   const { userSession, signOut } = useAuth();
+  const { isSuperAdmin } = useIsSuperAdmin();
   const location = useLocation();
   const [isDark, setIsDark] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [navigation, setNavigation] = useState([
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Clientes", href: "/clients", icon: Building2 },
+    { name: "Agentes", href: "/agents", icon: Bot },
+    { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
+    { name: "Chats", href: "/chats", icon: MessageSquare },
+    { name: "Relatórios", href: "/reports", icon: FileText },
+    { name: "Relatórios por Cliente", href: "/client-reports", icon: FileText },
+    { name: "Configurações", href: "/settings", icon: Settings },
+    { name: "Equipe", href: "/users", icon: Users },
+    { name: "Integrações", href: "/integrations", icon: Zap },
+  ]);
+
+  useEffect(() => {
+    if (isSuperAdmin) {
+      setNavigation([
+        { name: "Painel Master", href: "/master-admin", icon: Shield },
+        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+        { name: "Clientes", href: "/clients", icon: Building2 },
+        { name: "Agentes", href: "/agents", icon: Bot },
+        { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
+        { name: "Chats", href: "/chats", icon: MessageSquare },
+        { name: "Relatórios", href: "/reports", icon: FileText },
+        { name: "Relatórios por Cliente", href: "/client-reports", icon: FileText },
+        { name: "Configurações", href: "/settings", icon: Settings },
+        { name: "Equipe", href: "/users", icon: Users },
+        { name: "Integrações", href: "/integrations", icon: Zap },
+      ]);
+    }
+  }, [isSuperAdmin]);
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -133,6 +154,7 @@ export function AppShell({ children }: AppShellProps) {
               {navigation.find((item) => location.pathname.startsWith(item.href))?.name ||
                 "Construtor de IA"}
             </h2>
+            <TenantSelector />
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
