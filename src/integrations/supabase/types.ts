@@ -338,6 +338,68 @@ export type Database = {
           },
         ]
       }
+      limites_tokens: {
+        Row: {
+          alerta_enviado_100: boolean | null
+          alerta_enviado_80: boolean | null
+          alerta_enviado_90: boolean | null
+          client_id: string
+          conversas_mes: number | null
+          created_at: string | null
+          custo_brl_usado_mes: number | null
+          id: string
+          limite_conversas_mes: number | null
+          limite_custo_brl_mes: number | null
+          limite_tokens_mes: number | null
+          proximo_reset: string | null
+          tokens_usados_mes: number | null
+          ultimo_reset: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          alerta_enviado_100?: boolean | null
+          alerta_enviado_80?: boolean | null
+          alerta_enviado_90?: boolean | null
+          client_id: string
+          conversas_mes?: number | null
+          created_at?: string | null
+          custo_brl_usado_mes?: number | null
+          id?: string
+          limite_conversas_mes?: number | null
+          limite_custo_brl_mes?: number | null
+          limite_tokens_mes?: number | null
+          proximo_reset?: string | null
+          tokens_usados_mes?: number | null
+          ultimo_reset?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          alerta_enviado_100?: boolean | null
+          alerta_enviado_80?: boolean | null
+          alerta_enviado_90?: boolean | null
+          client_id?: string
+          conversas_mes?: number | null
+          created_at?: string | null
+          custo_brl_usado_mes?: number | null
+          id?: string
+          limite_conversas_mes?: number | null
+          limite_custo_brl_mes?: number | null
+          limite_tokens_mes?: number | null
+          proximo_reset?: string | null
+          tokens_usados_mes?: number | null
+          ultimo_reset?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "limites_tokens_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       n8n_chat_histories: {
         Row: {
           created_at: string
@@ -426,6 +488,71 @@ export type Database = {
           },
           {
             foreignKeyName: "n8n_workflows_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planos: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          descricao: string | null
+          id: string
+          integracoes_permitidas: Json | null
+          is_default: boolean | null
+          is_publico: boolean | null
+          limite_agentes: number | null
+          limite_conversas_mes: number | null
+          limite_tokens_mes: number | null
+          limite_usuarios: number | null
+          nome: string
+          preco_mensal: number
+          recursos: Json | null
+          tenant_id: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          integracoes_permitidas?: Json | null
+          is_default?: boolean | null
+          is_publico?: boolean | null
+          limite_agentes?: number | null
+          limite_conversas_mes?: number | null
+          limite_tokens_mes?: number | null
+          limite_usuarios?: number | null
+          nome: string
+          preco_mensal: number
+          recursos?: Json | null
+          tenant_id?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          integracoes_permitidas?: Json | null
+          is_default?: boolean | null
+          is_publico?: boolean | null
+          limite_agentes?: number | null
+          limite_conversas_mes?: number | null
+          limite_tokens_mes?: number | null
+          limite_usuarios?: number | null
+          nome?: string
+          preco_mensal?: number
+          recursos?: Json | null
+          tenant_id?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planos_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -763,6 +890,123 @@ export type Database = {
         }
         Relationships: []
       }
+      token_usage: {
+        Row: {
+          agent_id: string
+          chat_id: number | null
+          client_id: string
+          cotacao_usd_brl: number
+          created_at: string | null
+          custo_cache_usd: number | null
+          custo_input_usd: number
+          custo_output_usd: number
+          custo_total_brl: number
+          custo_total_usd: number | null
+          erro: string | null
+          id: string
+          latencia_ms: number | null
+          message_id: number | null
+          modelo: string
+          prompt_length: number | null
+          provider: string
+          response_length: number | null
+          sucesso: boolean | null
+          tenant_id: number
+          tokens_cache_read: number | null
+          tokens_input: number
+          tokens_output: number
+          tokens_total: number | null
+        }
+        Insert: {
+          agent_id: string
+          chat_id?: number | null
+          client_id: string
+          cotacao_usd_brl: number
+          created_at?: string | null
+          custo_cache_usd?: number | null
+          custo_input_usd: number
+          custo_output_usd: number
+          custo_total_brl: number
+          custo_total_usd?: number | null
+          erro?: string | null
+          id?: string
+          latencia_ms?: number | null
+          message_id?: number | null
+          modelo: string
+          prompt_length?: number | null
+          provider: string
+          response_length?: number | null
+          sucesso?: boolean | null
+          tenant_id: number
+          tokens_cache_read?: number | null
+          tokens_input: number
+          tokens_output: number
+          tokens_total?: number | null
+        }
+        Update: {
+          agent_id?: string
+          chat_id?: number | null
+          client_id?: string
+          cotacao_usd_brl?: number
+          created_at?: string | null
+          custo_cache_usd?: number | null
+          custo_input_usd?: number
+          custo_output_usd?: number
+          custo_total_brl?: number
+          custo_total_usd?: number | null
+          erro?: string | null
+          id?: string
+          latencia_ms?: number | null
+          message_id?: number | null
+          modelo?: string
+          prompt_length?: number | null
+          provider?: string
+          response_length?: number | null
+          sucesso?: boolean | null
+          tenant_id?: number
+          tokens_cache_read?: number | null
+          tokens_input?: number
+          tokens_output?: number
+          tokens_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "token_usage_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "token_usage_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "token_usage_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "token_usage_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "token_usage_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_invitations: {
         Row: {
           accepted_at: string | null
@@ -800,6 +1044,94 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "user_invitations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      waha_sessions: {
+        Row: {
+          agent_id: string | null
+          client_id: string
+          connected_at: string | null
+          created_at: string | null
+          disconnected_at: string | null
+          id: string
+          last_activity: string | null
+          last_message_at: string | null
+          phone_number: string | null
+          qr_code: string | null
+          qr_expires_at: string | null
+          reconnect_attempts: number | null
+          session_name: string
+          status: string | null
+          tenant_id: number
+          total_messages_received: number | null
+          total_messages_sent: number | null
+          updated_at: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          client_id: string
+          connected_at?: string | null
+          created_at?: string | null
+          disconnected_at?: string | null
+          id?: string
+          last_activity?: string | null
+          last_message_at?: string | null
+          phone_number?: string | null
+          qr_code?: string | null
+          qr_expires_at?: string | null
+          reconnect_attempts?: number | null
+          session_name: string
+          status?: string | null
+          tenant_id: number
+          total_messages_received?: number | null
+          total_messages_sent?: number | null
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          client_id?: string
+          connected_at?: string | null
+          created_at?: string | null
+          disconnected_at?: string | null
+          id?: string
+          last_activity?: string | null
+          last_message_at?: string | null
+          phone_number?: string | null
+          qr_code?: string | null
+          qr_expires_at?: string | null
+          reconnect_attempts?: number | null
+          session_name?: string
+          status?: string | null
+          tenant_id?: number
+          total_messages_received?: number | null
+          total_messages_sent?: number | null
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waha_sessions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waha_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waha_sessions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
