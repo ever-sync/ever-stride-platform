@@ -18,64 +18,64 @@ export type Database = {
         Row: {
           ativo: boolean | null
           client_id: string
-          codigo_ativar_ia: string | null
-          codigo_avaliacao: string | null
-          codigo_envio_grupo: string | null
-          codigo_pausar_ia: string | null
-          codigo_resetar_bd: string | null
-          codigo_transferencia: string | null
           created_at: string
           id: string
           limite_mensagens_mes: number | null
+          max_tokens: number | null
           mensagens_usadas_mes: number | null
+          modelo_ia: string | null
+          n8n_workflow_id: string | null
           nome_agente: string
+          prompt_sistema: string | null
           saudacao_inicial: string | null
           script_atendimento: string
+          temperatura: number | null
           tempo_atendimento: number | null
           tenant_id: number
           updated_at: string
+          webhook_url: string | null
           workflow_id: string | null
         }
         Insert: {
           ativo?: boolean | null
           client_id: string
-          codigo_ativar_ia?: string | null
-          codigo_avaliacao?: string | null
-          codigo_envio_grupo?: string | null
-          codigo_pausar_ia?: string | null
-          codigo_resetar_bd?: string | null
-          codigo_transferencia?: string | null
           created_at?: string
           id?: string
           limite_mensagens_mes?: number | null
+          max_tokens?: number | null
           mensagens_usadas_mes?: number | null
+          modelo_ia?: string | null
+          n8n_workflow_id?: string | null
           nome_agente?: string
+          prompt_sistema?: string | null
           saudacao_inicial?: string | null
           script_atendimento: string
+          temperatura?: number | null
           tempo_atendimento?: number | null
           tenant_id: number
           updated_at?: string
+          webhook_url?: string | null
           workflow_id?: string | null
         }
         Update: {
           ativo?: boolean | null
           client_id?: string
-          codigo_ativar_ia?: string | null
-          codigo_avaliacao?: string | null
-          codigo_envio_grupo?: string | null
-          codigo_pausar_ia?: string | null
-          codigo_resetar_bd?: string | null
-          codigo_transferencia?: string | null
           created_at?: string
           id?: string
           limite_mensagens_mes?: number | null
+          max_tokens?: number | null
           mensagens_usadas_mes?: number | null
+          modelo_ia?: string | null
+          n8n_workflow_id?: string | null
           nome_agente?: string
+          prompt_sistema?: string | null
           saudacao_inicial?: string | null
           script_atendimento?: string
+          temperatura?: number | null
           tempo_atendimento?: number | null
           tenant_id?: number
           updated_at?: string
+          webhook_url?: string | null
           workflow_id?: string | null
         }
         Relationships: [
@@ -363,6 +363,69 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "n8n_chat_histories_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      n8n_workflows: {
+        Row: {
+          agent_id: string | null
+          created_at: string | null
+          failed_executions: number | null
+          id: string
+          is_active: boolean | null
+          last_execution: string | null
+          tenant_id: number
+          total_executions: number | null
+          updated_at: string | null
+          webhook_test_url: string | null
+          webhook_url: string
+          workflow_id: string
+          workflow_name: string
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string | null
+          failed_executions?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_execution?: string | null
+          tenant_id: number
+          total_executions?: number | null
+          updated_at?: string | null
+          webhook_test_url?: string | null
+          webhook_url: string
+          workflow_id: string
+          workflow_name: string
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string | null
+          failed_executions?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_execution?: string | null
+          tenant_id?: number
+          total_executions?: number | null
+          updated_at?: string | null
+          webhook_test_url?: string | null
+          webhook_url?: string
+          workflow_id?: string
+          workflow_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "n8n_workflows_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "n8n_workflows_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -750,9 +813,15 @@ export type Database = {
           ativo: boolean | null
           cnpj: string | null
           created_at: string
+          data_inicio: string | null
+          data_vencimento: string | null
           email: string
           id: string
           nome_empresa: string
+          plano_id: string | null
+          plano_nome: string | null
+          plano_valor: number | null
+          status_pagamento: string | null
           telefone: string | null
           tenant_id: number
           updated_at: string
@@ -766,9 +835,15 @@ export type Database = {
           ativo?: boolean | null
           cnpj?: string | null
           created_at?: string
+          data_inicio?: string | null
+          data_vencimento?: string | null
           email: string
           id?: string
           nome_empresa: string
+          plano_id?: string | null
+          plano_nome?: string | null
+          plano_valor?: number | null
+          status_pagamento?: string | null
           telefone?: string | null
           tenant_id: number
           updated_at?: string
@@ -782,9 +857,15 @@ export type Database = {
           ativo?: boolean | null
           cnpj?: string | null
           created_at?: string
+          data_inicio?: string | null
+          data_vencimento?: string | null
           email?: string
           id?: string
           nome_empresa?: string
+          plano_id?: string | null
+          plano_nome?: string | null
+          plano_valor?: number | null
+          status_pagamento?: string | null
           telefone?: string | null
           tenant_id?: number
           updated_at?: string
