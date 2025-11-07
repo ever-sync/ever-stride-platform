@@ -1413,6 +1413,10 @@ export type Database = {
           score: number
         }[]
       }
+      incrementar_uso_tokens: {
+        Args: { p_client_id: string; p_custo_brl: number; p_tokens: number }
+        Returns: undefined
+      }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       log_execucao_llm: {
         Args: {
