@@ -1446,6 +1446,15 @@ export type Database = {
           similarity: number
         }[]
       }
+      verificar_limite_cliente: {
+        Args: { p_client_id: string }
+        Returns: {
+          motivo: string
+          percentual_usado: number
+          pode_usar: boolean
+          tokens_restantes: number
+        }[]
+      }
     }
     Enums: {
       app_role: "OWNER" | "ADMIN" | "ANALYST" | "SUPPORT" | "MASTER"
