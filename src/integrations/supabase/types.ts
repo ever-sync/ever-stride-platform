@@ -1436,6 +1436,7 @@ export type Database = {
         Args: { p_message: Json; p_session_id: string; p_tenant_id: number }
         Returns: number
       }
+      resetar_limites_mensais: { Args: never; Returns: undefined }
       search_documents: {
         Args: { p_embedding: string; p_limit?: number; p_tenant_id: number }
         Returns: {
