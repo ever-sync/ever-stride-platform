@@ -1208,6 +1208,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_plano_id"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "planos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "whatsapp_clients_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
