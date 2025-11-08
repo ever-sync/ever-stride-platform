@@ -28,6 +28,7 @@ import TestAgentChat from "./pages/TestAgentChat";
 import WhatsAppTest from "./pages/WhatsAppTest";
 import WhatsAppDashboard from "./pages/WhatsAppDashboard";
 import ChatAnalytics from "./pages/ChatAnalytics";
+import N8NMonitoring from "./pages/N8NMonitoring";
 
 const queryClient = new QueryClient();
 
@@ -229,6 +230,16 @@ const App = () => (
                 <AuthGuard>
                   <AppShell>
                     <ChatAnalytics />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/n8n-monitoring"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <N8NMonitoring />
                   </AppShell>
                 </AuthGuard>
               }

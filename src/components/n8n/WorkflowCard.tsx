@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { WebhookTestModal } from "./WebhookTestModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +20,8 @@ import {
   TrendingUp,
   Clock,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { N8NWorkflow } from "@/types/n8n";
@@ -43,6 +45,7 @@ interface WorkflowCardProps {
 export function WorkflowCard({ workflow }: WorkflowCardProps) {
   const { toggleActive, deleteWorkflow, operationLoading } = useN8NWorkflows();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showTestModal, setShowTestModal] = useState(false);
 
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(workflow.webhook_url);
@@ -119,6 +122,10 @@ export function WorkflowCard({ workflow }: WorkflowCardProps) {
                 <DropdownMenuItem onClick={handleCopyUrl}>
                   <Copy className="mr-2 h-4 w-4" />
                   Copiar URL
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowTestModal(true)}>
+                  <Zap className="mr-2 h-4 w-4" />
+                  Testar Webhook
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleEditInN8N}>
                   <ExternalLink className="mr-2 h-4 w-4" />
@@ -215,6 +222,13 @@ export function WorkflowCard({ workflow }: WorkflowCardProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <WebhookTestModal
+        webhookUrl={workflow.webhook_url}
+        workflowName={workflow.workflow_name}
+        open={showTestModal}
+        onOpenChange={setShowTestModal}
+      />
     </>
   );
 }

@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsSuperAdmin } from "@/hooks/useIsSuperAdmin";
 import { useNotifications } from "@/hooks/useNotifications";
+import { N8NAlerts } from "@/components/n8n/N8NAlerts";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TenantSelector } from "@/components/TenantSelector";
@@ -36,6 +37,7 @@ import {
   CreditCard,
   BarChart,
   Plug,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
@@ -69,6 +71,7 @@ export function AppShell({ children }: AppShellProps) {
     { name: "Configurações", href: "/settings", icon: Settings },
     { name: "Equipe", href: "/users", icon: Users },
     { name: "Integrações", href: "/integrations", icon: Plug },
+    { name: "Monitoramento N8N", href: "/n8n-monitoring", icon: Activity },
   ]);
 
   useEffect(() => {
@@ -92,6 +95,7 @@ export function AppShell({ children }: AppShellProps) {
         { name: "Configurações", href: "/settings", icon: Settings },
         { name: "Equipe", href: "/users", icon: Users },
         { name: "Integrações", href: "/integrations", icon: Plug },
+        { name: "Monitoramento N8N", href: "/n8n-monitoring", icon: Activity },
       ]);
     }
   }, [isSuperAdmin]);
@@ -189,6 +193,7 @@ export function AppShell({ children }: AppShellProps) {
                 Nova mensagem
               </Badge>
             )}
+            <N8NAlerts />
             <Button
               variant="ghost"
               size="icon"

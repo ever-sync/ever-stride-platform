@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,8 @@ import {
   Webhook, 
   Link as LinkIcon,
   Filter,
-  TrendingUp
+  TrendingUp,
+  ExternalLink,
 } from "lucide-react";
 import { useN8NWorkflows } from "@/hooks/useN8NWorkflows";
 import { WorkflowCard } from "@/components/n8n/WorkflowCard";
@@ -45,6 +47,7 @@ export default function Integrations() {
   });
 
   const activeWorkflowsCount = workflows.filter(w => w.is_active).length;
+  const n8nUrl = import.meta.env.VITE_N8N_URL || 'http://localhost:5678';
 
   return (
     <div className="space-y-6">
@@ -56,12 +59,20 @@ export default function Integrations() {
             Gerencie workflows, webhooks e integrações externas
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <a href="/whatsapp-dashboard">
-            <Activity className="mr-2 h-4 w-4" />
-            Ver Dashboard de Monitoramento
-          </a>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/n8n-monitoring">
+              <Activity className="mr-2 h-4 w-4" />
+              Ver Dashboard de Monitoramento
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <a href={`${n8nUrl}/workflow/new`} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Criar Workflow no N8N
+            </a>
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
