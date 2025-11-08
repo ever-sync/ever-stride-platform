@@ -23,6 +23,11 @@ serve(async (req) => {
     const wahaApiUrl = Deno.env.get('WAHA_API_URL');
     const wahaApiKey = Deno.env.get('WAHA_API_KEY');
 
+    console.log('WAHA Config:', {
+      apiUrl: wahaApiUrl ? 'configurado' : 'FALTANDO',
+      apiKey: wahaApiKey ? 'configurado' : 'FALTANDO'
+    });
+
     if (!wahaApiUrl || !wahaApiKey) {
       return new Response(
         JSON.stringify({ error: 'Configuração WAHA não encontrada' }),
@@ -31,8 +36,15 @@ serve(async (req) => {
     }
 
     const sessionName = `cliente-${clientId}`;
+    const requestUrl = `${wahaApiUrl}/api/sessions/start`;
 
-    const response = await fetch(`${wahaApiUrl}/api/sessions/start`, {
+    console.log('Criando sessão WAHA:', {
+      sessionName,
+      requestUrl,
+      webhookUrl
+    });
+
+    const response = await fetch(requestUrl, {
       method: 'POST',
       headers: {
         'X-Api-Key': wahaApiKey,
@@ -49,11 +61,24 @@ serve(async (req) => {
       })
     });
 
+    console.log('WAHA API Response:', {
+      status: response.status,
+      statusText: response.statusText
+    });
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Erro ao criar sessão WAHA:', errorText);
+      console.error('Erro detalhado WAHA API:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
       return new Response(
-        JSON.stringify({ error: `Erro ao criar sessão: ${response.statusText}` }),
+        JSON.stringify({ 
+          error: `Erro ao criar sessão: ${response.statusText}`,
+          details: errorText || 'Sem detalhes do servidor',
+          status: response.status
+        }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
