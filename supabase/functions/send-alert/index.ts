@@ -10,12 +10,12 @@ interface AlertPayload {
   metadata?: any
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
 serve(async (req) => {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -33,6 +33,7 @@ serve(async (req) => {
       .from('agents_v2')
       .select(`
         *,
+        tenants!inner(id, nome, email),
         whatsapp_clients!inner(nome_empresa, email)
       `)
       .eq('id', payload.agent_id)
@@ -42,16 +43,13 @@ serve(async (req) => {
       throw new Error('Agente não encontrado')
     }
 
-    // 2. Buscar admins do tenant
+    // 2. Buscar preferências de notificação do tenant
     const { data: users } = await supabase
       .from('tenant_users')
       .select(`
-        role,
-        profiles!inner(
-          email
-        )
+        profiles!inner(email)
       `)
-      .eq('tenant_id', agent.tenant_id)
+      .eq('tenant_id', agent.tenants.id)
       .in('role', ['OWNER', 'ADMIN'])
 
     if (!users || users.length === 0) {
@@ -71,29 +69,10 @@ serve(async (req) => {
         <style>
           body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { 
-            background: ${getSeverityColor(payload.severity)}; 
-            color: white; 
-            padding: 20px; 
-            border-radius: 8px 8px 0 0; 
-          }
-          .content { 
-            background: #f9f9f9; 
-            padding: 20px; 
-            border-radius: 0 0 8px 8px; 
-          }
-          .details { 
-            background: white; 
-            padding: 15px; 
-            border-radius: 4px; 
-            margin: 15px 0; 
-          }
-          .footer { 
-            text-align: center; 
-            padding: 20px; 
-            color: #666; 
-            font-size: 12px; 
-          }
+          .header { background: ${getSeverityColor(payload.severity)}; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+          .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
+          .details { background: white; padding: 15px; border-radius: 4px; margin: 15px 0; }
+          .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
           .button { 
             display: inline-block; 
             padding: 12px 24px; 
@@ -112,7 +91,7 @@ serve(async (req) => {
           </div>
           <div class="content">
             <p><strong>Agente:</strong> ${agent.nome}</p>
-            <p><strong>Cliente:</strong> ${agent.whatsapp_clients.nome_empresa}</p>
+            <p><strong>Cliente:</strong> ${agent.whatsapp_clients?.nome_empresa || 'N/A'}</p>
             <p><strong>Tipo de Alerta:</strong> ${formatAlertType(payload.alert_type)}</p>
             <p><strong>Horário:</strong> ${new Date().toLocaleString('pt-BR')}</p>
             
@@ -122,7 +101,7 @@ serve(async (req) => {
               ${payload.metadata ? `<pre>${JSON.stringify(payload.metadata, null, 2)}</pre>` : ''}
             </div>
             
-            <a href="${Deno.env.get('APP_URL') || 'https://dffhhforfwhgzdlrfzpc.supabase.co'}/agents/${payload.agent_id}" class="button">
+            <a href="${Deno.env.get('APP_URL') || 'https://app.example.com'}/agents/${payload.agent_id}/monitoring" class="button">
               Ver Detalhes do Agente
             </a>
             
@@ -132,14 +111,15 @@ serve(async (req) => {
             </ul>
           </div>
           <div class="footer">
-            <p>Você está recebendo este email porque é administrador do sistema</p>
+            <p>Você está recebendo este email porque é administrador do tenant ${agent.tenants?.nome}</p>
+            <p>Para gerenciar suas preferências de notificação, <a href="${Deno.env.get('APP_URL') || 'https://app.example.com'}/settings">clique aqui</a></p>
           </div>
         </div>
       </body>
       </html>
     `
 
-    // 4. Enviar emails via Resend
+    // 4. Enviar emails via Resend (se configurado)
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     let successCount = 0
 
@@ -153,8 +133,8 @@ serve(async (req) => {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              from: 'alertas@resend.dev',
-              to: user.profiles.email,
+              from: 'alertas@seudominio.com',
+              to: user.profiles?.email,
               subject: emailSubject,
               html: emailBody
             })
@@ -175,13 +155,13 @@ serve(async (req) => {
       const results = await Promise.all(emailPromises)
       successCount = results.filter(r => r).length
     } else {
-      console.warn('RESEND_API_KEY não configurada, emails não enviados')
+      console.warn('RESEND_API_KEY não configurado, emails não serão enviados')
     }
 
     // 5. Registrar notificação
     await supabase.from('notification_logs').insert({
       notification_type: 'email',
-      recipient: users.map((u: any) => u.profiles.email).join(', '),
+      recipient: users.map((u: any) => u.profiles?.email).join(', '),
       subject: emailSubject,
       message: payload.message,
       status: successCount > 0 ? 'sent' : 'failed',
@@ -231,17 +211,17 @@ function getSeverityEmoji(severity: string): string {
 }
 
 function formatAlertType(type: string): string {
-  const types: Record<string, string> = {
+  const types = {
     'critical_error': 'Erro Crítico',
     'limit_reached': 'Limite Atingido',
     'degraded_performance': 'Performance Degradada',
     'status_change': 'Mudança de Status'
   }
-  return types[type] || type
+  return types[type as keyof typeof types] || type
 }
 
 function getRecommendedActions(type: string): string {
-  const actions: Record<string, string> = {
+  const actions = {
     'critical_error': `
       <li>Verificar logs de erro no dashboard</li>
       <li>Revisar configuração do agente</li>
@@ -266,5 +246,5 @@ function getRecommendedActions(type: string): string {
       <li>Revisar eventos recentes</li>
     `
   }
-  return actions[type] || '<li>Verificar dashboard para mais detalhes</li>'
+  return actions[type as keyof typeof actions] || '<li>Verificar dashboard para mais detalhes</li>'
 }
