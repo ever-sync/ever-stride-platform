@@ -25,40 +25,34 @@ serve(async (req) => {
       retryAfterSeconds = Math.max(0, Math.ceil((retryTime - now) / 1000));
     }
 
-    // If POST request with action=reset, attempt to reset circuit breaker
+    // Handle POST requests with action (e.g., reset)
     if (req.method === 'POST') {
       try {
         const body = await req.text();
-        if (!body) {
-          throw new Error('Empty request body');
-        }
         
-        const { action } = JSON.parse(body);
-        
-        if (action === 'reset') {
-          await circuitBreaker.updateState('CLOSED', 0);
+        // If body is not empty, try to parse it for actions
+        if (body && body.trim().length > 0) {
+          const { action } = JSON.parse(body);
           
-          return new Response(
-            JSON.stringify({
-              success: true,
-              message: 'Circuit breaker has been reset',
-              state: 'CLOSED'
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          if (action === 'reset') {
+            await circuitBreaker.updateState('CLOSED', 0);
+            
+            return new Response(
+              JSON.stringify({
+                success: true,
+                message: 'Circuit breaker has been reset',
+                state: 'CLOSED'
+              }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
         }
+        
+        // If no action or empty body, fall through to return status
+        // (Supabase client uses POST by default even for queries)
       } catch (parseError) {
         console.error('Error parsing POST request:', parseError);
-        return new Response(
-          JSON.stringify({ 
-            error: 'Invalid request body',
-            details: parseError instanceof Error ? parseError.message : 'Unknown error'
-          }),
-          { 
-            status: 400,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
-        );
+        // If parsing fails, fall through to return status instead of erroring
       }
     }
 
