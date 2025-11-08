@@ -23,6 +23,7 @@ import MasterAdmin from "./pages/MasterAdmin";
 import WhatsAppConnection from "./pages/WhatsAppConnection";
 import TokenUsage from "./pages/TokenUsage";
 import Planos from "./pages/Planos";
+import TestAgentChat from "./pages/TestAgentChat";
 
 const queryClient = new QueryClient();
 
@@ -174,6 +175,16 @@ const App = () => (
                 <AuthGuard>
                   <AppShell>
                     <Planos />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/test-agent-chat"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <TestAgentChat />
                   </AppShell>
                 </AuthGuard>
               }
