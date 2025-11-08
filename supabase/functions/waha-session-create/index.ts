@@ -60,7 +60,7 @@ serve(async (req) => {
 
     const circuitBreaker = getCircuitBreaker('waha-api');
     
-    const response = await circuitBreaker.execute(() => 
+    let response = await circuitBreaker.execute(() => 
       trackExecution('waha-session-create', () =>
         fetchWithRetry(requestUrl, {
           method: 'POST',
@@ -85,6 +85,58 @@ serve(async (req) => {
       status: response.status,
       statusText: response.statusText
     });
+
+    // Se a sessão já existe (422), tentar parar e recriar
+    if (response.status === 422) {
+      const errorText = await response.text();
+      console.log('Sessão já existe, tentando parar e recriar...', errorText);
+      
+      // Tentar parar a sessão existente
+      const stopUrl = new URL(`/api/sessions/${sessionName}/stop`, `${base.protocol}//${base.host}`).toString();
+      try {
+        const stopResponse = await fetchWithRetry(stopUrl, {
+          method: 'POST',
+          headers: {
+            'X-Api-Key': wahaApiKey,
+            'Content-Type': 'application/json',
+          }
+        }, 2);
+        
+        console.log('Sessão parada:', stopResponse.status);
+        
+        // Aguardar um pouco antes de recriar
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Tentar criar novamente
+        response = await circuitBreaker.execute(() => 
+          trackExecution('waha-session-create-retry', () =>
+            fetchWithRetry(requestUrl, {
+              method: 'POST',
+              headers: {
+                'X-Api-Key': wahaApiKey,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                name: sessionName,
+                config: {
+                  webhooks: [{
+                    url: webhookUrl,
+                    events: ['message', 'session.status']
+                  }]
+                }
+              })
+            }, 2)
+          )
+        );
+        
+        console.log('WAHA API Response (retry):', {
+          status: response.status,
+          statusText: response.statusText
+        });
+      } catch (stopError) {
+        console.error('Erro ao parar sessão existente:', stopError);
+      }
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
