@@ -5,6 +5,7 @@ import { WahaSession } from '@/types/waha';
 import { wahaClient } from '@/lib/waha-client';
 import { useAuth } from '@/hooks/useAuth';
 import { mapWahaStatusToDb } from '@/lib/waha-status-mapper';
+import { retryWithBackoff } from '@/lib/retry-utils';
 
 const MAX_RECONNECT_ATTEMPTS = 5;
 const INITIAL_RETRY_DELAY = 2000; // 2 segundos
@@ -36,6 +37,7 @@ export function useWahaSession(clientId?: string) {
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [qrRetryAttempt, setQrRetryAttempt] = useState(0);
 
   const carregarSession = async () => {
     if (!clientId) return;
@@ -119,28 +121,73 @@ export function useWahaSession(clientId?: string) {
     }
   };
 
-  const atualizarQR = async () => {
-    if (!session) return;
+  const atualizarQR = async (): Promise<{ success: boolean; error?: string }> => {
+    if (!session) return { success: false, error: 'No session available' };
 
     try {
-      const { qr, expiresAt } = await wahaClient.getQRCode(session.session_name);
+      console.log('Atualizando QR code para sessão:', session.session_name);
       
-      if (qr) {
-        const qrExpiresAt = expiresAt || new Date(Date.now() + 60000).toISOString();
-        
-        // Atualizar no banco
-        await supabase
-          .from('waha_sessions')
-          .update({ 
-            qr_code: qr,
-            qr_expires_at: qrExpiresAt
-          })
-          .eq('id', session.id);
-        
-        setSession({ ...session, qr_code: qr, qr_expires_at: qrExpiresAt });
-      }
-    } catch (error) {
-      console.error('Erro ao atualizar QR:', error);
+      const result = await retryWithBackoff(
+        async () => {
+          const { qr, expiresAt } = await wahaClient.getQRCode(session.session_name);
+          if (!qr) {
+            throw new Error('QR code não disponível');
+          }
+          return { qr, expiresAt };
+        },
+        {
+          maxAttempts: 3,
+          initialDelay: 1000,
+          maxDelay: 5000,
+          backoffMultiplier: 2,
+          onRetry: (attempt, error) => {
+            setQrRetryAttempt(attempt);
+            console.log(`Tentativa ${attempt} de buscar QR code:`, error);
+            
+            toast({
+              title: `Tentando novamente (${attempt}/3)...`,
+              description: 'Aguarde enquanto tentamos buscar o QR code.',
+            });
+          }
+        }
+      );
+
+      const qrExpiresAt = result.expiresAt || new Date(Date.now() + 60000).toISOString();
+
+      await supabase
+        .from('waha_sessions')
+        .update({ 
+          qr_code: result.qr,
+          qr_expires_at: qrExpiresAt
+        })
+        .eq('id', session.id);
+      
+      setSession({ ...session, qr_code: result.qr, qr_expires_at: qrExpiresAt });
+      setQrRetryAttempt(0);
+      
+      toast({
+        title: 'QR Code atualizado!',
+        description: 'O código QR foi gerado com sucesso.',
+      });
+      
+      console.log('QR code atualizado com sucesso');
+      return { success: true };
+      
+    } catch (error: any) {
+      setQrRetryAttempt(0);
+      console.error('Erro ao buscar QR após todas as tentativas:', error);
+      
+      toast({
+        title: 'Erro ao buscar QR Code',
+        description: 'Não foi possível gerar o código QR após várias tentativas. Tente novamente em alguns instantes.',
+        variant: 'destructive',
+      });
+      
+      await logSessionAction(session.id, 'qr_fetch_failed', 'error', {
+        retries: 3
+      }, error.message);
+      
+      return { success: false, error: error.message };
     }
   };
 
@@ -260,6 +307,12 @@ export function useWahaSession(clientId?: string) {
             unexpected: true
           }, 'Conexão perdida inesperadamente');
           
+          toast({
+            title: '⚠️ Conexão Perdida',
+            description: `A sessão ${session.session_name} foi desconectada inesperadamente. Tentando reconectar...`,
+            variant: 'destructive',
+          });
+          
           if (retryCount < MAX_RECONNECT_ATTEMPTS) {
             attemptReconnect();
           }
@@ -303,6 +356,7 @@ export function useWahaSession(clientId?: string) {
     session,
     loading,
     connecting,
+    qrRetryAttempt,
     criarSession,
     atualizarQR,
     desconectar,

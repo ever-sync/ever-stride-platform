@@ -14,7 +14,7 @@ interface QRCodeConnectProps {
 }
 
 export function QRCodeConnect({ clientId, agentId }: QRCodeConnectProps) {
-  const { session, loading, connecting, criarSession, atualizarQR, desconectar } = useWahaSession(clientId)
+  const { session, loading, connecting, qrRetryAttempt, criarSession, atualizarQR, desconectar } = useWahaSession(clientId)
   const [autoRefresh, setAutoRefresh] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
@@ -61,8 +61,11 @@ export function QRCodeConnect({ clientId, agentId }: QRCodeConnectProps) {
 
   const handleRefreshQR = async () => {
     setRefreshing(true)
-    await atualizarQR()
-    setRefreshing(false)
+    try {
+      await atualizarQR()
+    } finally {
+      setRefreshing(false)
+    }
   }
 
   if (loading) {
@@ -202,6 +205,15 @@ export function QRCodeConnect({ clientId, agentId }: QRCodeConnectProps) {
                   </ol>
                 </AlertDescription>
               </Alert>
+
+              {qrRetryAttempt > 0 && (
+                <Alert className="mt-4">
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <AlertDescription>
+                    Tentativa {qrRetryAttempt} de 3... Aguarde.
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <div className="flex gap-2 justify-center mt-4">
                 <Button

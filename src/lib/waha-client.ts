@@ -26,12 +26,19 @@ export class WAHAClient {
   }
 
   async getQRCode(sessionName: string): Promise<{ qr: string | null; expiresAt?: string | null }> {
-    const { data, error } = await supabase.functions.invoke('waha-session-qr', {
-      body: { sessionName }
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-    if (error) throw error;
-    return { qr: data.qr || null, expiresAt: data.expiresAt || null };
+    try {
+      const { data, error } = await supabase.functions.invoke('waha-session-qr', {
+        body: { sessionName }
+      });
+
+      if (error) throw error;
+      return { qr: data.qr || null, expiresAt: data.expiresAt || null };
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   async getSessionStatus(sessionName: string): Promise<string> {

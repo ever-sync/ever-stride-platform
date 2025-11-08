@@ -1,20 +1,26 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { WahaSession } from '@/types/waha';
 import QRCode from 'react-qr-code';
-import { CheckCircle, Loader2, Clock } from 'lucide-react';
+import { CheckCircle, Loader2, Clock, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface QRCodeModalProps {
   session: WahaSession;
   open: boolean;
   onClose: () => void;
+  onRefreshQR?: () => Promise<void>;
+  refreshing?: boolean;
+  qrRetryAttempt?: number;
 }
 
-export function QRCodeModal({ session, open, onClose }: QRCodeModalProps) {
+export function QRCodeModal({ session, open, onClose, onRefreshQR, refreshing = false, qrRetryAttempt = 0 }: QRCodeModalProps) {
   const isConnected = session.status === 'connected' || session.status === 'WORKING';
   const needsQR = session.status === 'qr_code' || session.status === 'SCAN_QR_CODE';
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (needsQR && session.qr_expires_at) {
@@ -37,6 +43,16 @@ export function QRCodeModal({ session, open, onClose }: QRCodeModalProps) {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleRefreshClick = async () => {
+    if (!onRefreshQR) return;
+    setIsRefreshing(true);
+    try {
+      await onRefreshQR();
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   return (
@@ -68,7 +84,7 @@ export function QRCodeModal({ session, open, onClose }: QRCodeModalProps) {
               )}
             </div>
           ) : needsQR && session.qr_code ? (
-            <div className="space-y-4">
+            <div className="space-y-4 w-full">
               <div className="bg-white p-4 rounded-lg">
                 {session.qr_code.startsWith('data:image') ? (
                   <img 
@@ -80,6 +96,37 @@ export function QRCodeModal({ session, open, onClose }: QRCodeModalProps) {
                   <QRCode value={session.qr_code} size={256} />
                 )}
               </div>
+              
+              {onRefreshQR && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefreshClick}
+                  disabled={isRefreshing || refreshing}
+                  className="w-full"
+                >
+                  {isRefreshing || refreshing ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Atualizando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Atualizar QR Code
+                    </>
+                  )}
+                </Button>
+              )}
+              
+              {qrRetryAttempt > 0 && (
+                <Alert>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <AlertDescription>
+                    Tentativa {qrRetryAttempt} de 3... Aguarde.
+                  </AlertDescription>
+                </Alert>
+              )}
               
               {timeRemaining !== null && (
                 <div className="space-y-2">
@@ -110,6 +157,14 @@ export function QRCodeModal({ session, open, onClose }: QRCodeModalProps) {
                   : 'Aguardando QR code...'
                 }
               </p>
+              {qrRetryAttempt > 0 && (
+                <Alert className="mt-4">
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <AlertDescription>
+                    Tentativa {qrRetryAttempt} de 3... Aguarde.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
           )}
         </div>

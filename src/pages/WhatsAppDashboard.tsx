@@ -14,6 +14,8 @@ import { QRCodeModal } from '@/components/whatsapp/QRCodeModal'
 import { SessionStatistics } from '@/components/whatsapp/SessionStatistics'
 import { SessionActivityLog } from '@/components/whatsapp/SessionActivityLog'
 import { SessionChats } from '@/components/whatsapp/SessionChats'
+import { DisconnectAlert } from '@/components/whatsapp/DisconnectAlert'
+import { wahaClient } from '@/lib/waha-client'
 import QRCode from 'react-qr-code'
 
 type WahaSession = {
@@ -70,6 +72,8 @@ export default function WhatsAppDashboard() {
   const [selectedSession, setSelectedSession] = useState<WahaSession | null>(null)
   const [showQR, setShowQR] = useState(false)
   const [showChats, setShowChats] = useState(false)
+  const [disconnectedSessions, setDisconnectedSessions] = useState<WahaSession[]>([])
+  const [reconnectingSessionIds, setReconnectingSessionIds] = useState<string[]>([])
 
   // Carregar dados iniciais
   useEffect(() => {
@@ -89,6 +93,24 @@ export default function WhatsAppDashboard() {
         },
         (payload) => {
           console.log('Session change:', payload)
+          
+          // Detect unexpected disconnections
+          if (payload.eventType === 'UPDATE') {
+            const oldStatus = (payload.old as any)?.status
+            const newStatus = (payload.new as any)?.status
+            const sessionData = payload.new as WahaSession
+            
+            if ((oldStatus === 'WORKING' || oldStatus === 'connected') && newStatus === 'disconnected') {
+              console.log('Unexpected disconnection detected for:', sessionData.session_name)
+              setDisconnectedSessions(prev => {
+                if (!prev.find(s => s.id === sessionData.id)) {
+                  return [...prev, sessionData]
+                }
+                return prev
+              })
+            }
+          }
+          
           loadSessions()
           
           const sessionName = (payload.new as any)?.session_name || 'desconhecida'
@@ -224,6 +246,75 @@ export default function WhatsAppDashboard() {
     }
   }
 
+  const handleReconnectSession = async (session: WahaSession) => {
+    setReconnectingSessionIds(prev => [...prev, session.id])
+    
+    try {
+      const status = await wahaClient.getSessionStatus(session.session_name)
+      
+      if (status === 'WORKING') {
+        await supabase
+          .from('waha_sessions')
+          .update({ status: 'connected', reconnect_attempts: 0 })
+          .eq('id', session.id)
+        
+        toast({
+          title: 'Reconectado com sucesso!',
+          description: `Sessão ${session.session_name} foi reconectada.`,
+        })
+        
+        setDisconnectedSessions(prev => prev.filter(s => s.id !== session.id))
+      } else {
+        toast({
+          title: 'Não foi possível reconectar',
+          description: 'A sessão ainda está desconectada. Tente novamente em alguns momentos.',
+          variant: 'destructive',
+        })
+      }
+      
+      await loadSessions()
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao reconectar',
+        description: error.message,
+        variant: 'destructive',
+      })
+    } finally {
+      setReconnectingSessionIds(prev => prev.filter(id => id !== session.id))
+    }
+  }
+
+  const handleRefreshQR = async (session: WahaSession) => {
+    try {
+      const { qr, expiresAt } = await wahaClient.getQRCode(session.session_name)
+      
+      if (qr) {
+        const qrExpiresAt = expiresAt || new Date(Date.now() + 60000).toISOString()
+        
+        await supabase
+          .from('waha_sessions')
+          .update({ 
+            qr_code: qr,
+            qr_expires_at: qrExpiresAt
+          })
+          .eq('id', session.id)
+        
+        toast({
+          title: 'QR Code atualizado!',
+          description: 'O código QR foi regenerado com sucesso.',
+        })
+        
+        await loadSessions()
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao atualizar QR',
+        description: error.message,
+        variant: 'destructive',
+      })
+    }
+  }
+
   const filteredSessions = sessions.filter(session => {
     const matchesSearch = session.whatsapp_clients?.nome_empresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          session.session_name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -280,6 +371,13 @@ export default function WhatsAppDashboard() {
 
   return (
     <div className="space-y-6">
+      <DisconnectAlert
+        sessions={disconnectedSessions}
+        onReconnect={handleReconnectSession}
+        onDismiss={() => setDisconnectedSessions([])}
+        reconnecting={reconnectingSessionIds}
+      />
+      
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Dashboard WhatsApp - Tempo Real</h1>
@@ -382,16 +480,26 @@ export default function WhatsAppDashboard() {
                     </div>
                     <div className="flex gap-2">
                       {(session.status === 'SCAN_QR_CODE' || session.status === 'qr_code') && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedSession(session)
-                            setShowQR(true)
-                          }}
-                        >
-                          <QrCode className="h-4 w-4" />
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedSession(session)
+                              setShowQR(true)
+                            }}
+                          >
+                            <QrCode className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleRefreshQR(session)}
+                            title="Atualizar QR Code"
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                          </Button>
+                        </>
                       )}
                       {session.status === 'WORKING' && (
                         <Button
@@ -455,6 +563,11 @@ export default function WhatsAppDashboard() {
             onClose={() => {
               setShowQR(false)
               setSelectedSession(null)
+            }}
+            onRefreshQR={async () => {
+              if (selectedSession) {
+                await handleRefreshQR(selectedSession)
+              }
             }}
           />
           
