@@ -2245,6 +2245,13 @@ export type Database = {
         Args: { _tenant_id: number; _user_id: string }
         Returns: boolean
       }
+      cleanup_old_events: {
+        Args: never
+        Returns: {
+          rows_deleted: number
+          table_name: string
+        }[]
+      }
       cleanup_old_health_checks: { Args: never; Returns: undefined }
       create_tenant_with_owner: {
         Args: {
@@ -2404,6 +2411,26 @@ export type Database = {
           p_status: string
         }
         Returns: string
+      }
+      monitor_all_agents_health: {
+        Args: never
+        Returns: {
+          action_taken: string
+          agent_id: string
+          agent_name: string
+          health_score: number
+          new_status: string
+          old_status: string
+        }[]
+      }
+      reset_monthly_limits: {
+        Args: never
+        Returns: {
+          agent_id: string
+          custo_resetado: number
+          msgs_resetadas: number
+          tokens_resetados: number
+        }[]
       }
       resetar_limites_mensais: { Args: never; Returns: undefined }
       search_documents: {
