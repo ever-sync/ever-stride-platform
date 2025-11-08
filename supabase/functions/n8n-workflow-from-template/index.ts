@@ -15,6 +15,18 @@ interface CreateFromTemplateParams {
   customizations?: Record<string, any>;
 }
 
+// Helper function to normalize N8N URL
+const normalizeN8nUrl = (url: string): string => {
+  if (!url) return url;
+  // Remove trailing slashes
+  url = url.replace(/\/+$/, '');
+  // Add https:// if no protocol is present
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`;
+  }
+  return url;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -24,13 +36,15 @@ serve(async (req) => {
     const params: CreateFromTemplateParams = await req.json();
     console.log('Creating workflow from template:', params.templateId);
 
-    const N8N_API_URL = Deno.env.get('N8N_API_URL');
+    const N8N_API_URL = normalizeN8nUrl(Deno.env.get('N8N_API_URL') || '');
     const N8N_API_KEY = Deno.env.get('N8N_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 
     if (!N8N_API_URL || !N8N_API_KEY) {
       throw new Error('N8N API credentials not configured');
     }
+
+    console.log('Using N8N API URL:', N8N_API_URL);
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
