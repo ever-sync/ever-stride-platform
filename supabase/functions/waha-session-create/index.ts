@@ -36,7 +36,9 @@ serve(async (req) => {
     }
 
     const sessionName = `cliente-${clientId}`;
-    const requestUrl = `${wahaApiUrl}/api/sessions/start`;
+    // Normaliza a URL do WAHA para garantir que use apenas o domínio (remove caminhos como /dashboard)
+    const base = new URL(wahaApiUrl);
+    const requestUrl = new URL('/api/sessions/start', `${base.protocol}//${base.host}`).toString();
 
     console.log('Criando sessão WAHA:', {
       sessionName,
