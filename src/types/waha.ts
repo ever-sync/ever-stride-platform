@@ -27,3 +27,17 @@ export type WahaStatus =
   | 'connected'
   | 'failed'
   | 'stopped';
+
+export interface WahaWebhookPayload {
+  event: string;
+  session: string;
+  payload: {
+    status?: string;
+    from?: string;
+    to?: string;
+    body?: string;
+    id?: string;
+    timestamp?: number;
+    type?: string;
+  };
+}

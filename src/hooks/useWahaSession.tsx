@@ -19,9 +19,9 @@ export function useWahaSession(clientId?: string) {
         .from('waha_sessions')
         .select('*')
         .eq('client_id', clientId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
       setSession(data);
     } catch (error: any) {
       console.error('Erro ao carregar sessão:', error);
@@ -36,8 +36,9 @@ export function useWahaSession(clientId?: string) {
     try {
       setConnecting(true);
 
-      // Buscar webhook URL
-      const webhookUrl = `${window.location.origin}/webhook/waha`;
+      // Webhook URL aponta para o edge function
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://dffhhforfwhgzdlrfzpc.supabase.co';
+      const webhookUrl = `${supabaseUrl}/functions/v1/waha-webhook`;
 
       // Criar sessão via edge function
       const sessionData = await wahaClient.createSession({

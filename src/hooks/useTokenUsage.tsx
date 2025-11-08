@@ -66,9 +66,9 @@ export function useTokenUsage(clientId?: string, agentId?: string) {
         .from('limites_tokens')
         .select('*')
         .eq('client_id', clientId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
       
       if (data) {
         setLimite(data);
