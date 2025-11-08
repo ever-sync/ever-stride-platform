@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { fetchWithRetry } from '../_shared/retry.ts';
+import { getCircuitBreaker } from '../_shared/circuit-breaker.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -308,18 +309,27 @@ return {
     
     console.log('Creating workflow with payload:', JSON.stringify(workflowPayload).substring(0, 200));
     
-    const response = await fetchWithRetry(
-      `${N8N_API_URL}/api/v1/workflows`,
-      {
-        method: 'POST',
-        headers: {
-          'X-N8N-API-KEY': N8N_API_KEY,
-          'Content-Type': 'application/json'
+    // Use circuit breaker for N8N API calls
+    const circuitBreaker = getCircuitBreaker('n8n-api', {
+      failureThreshold: 3,
+      successThreshold: 2,
+      timeout: 30000
+    });
+    
+    const response = await circuitBreaker.execute(async () => {
+      return await fetchWithRetry(
+        `${N8N_API_URL}/api/v1/workflows`,
+        {
+          method: 'POST',
+          headers: {
+            'X-N8N-API-KEY': N8N_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(workflowPayload)
         },
-        body: JSON.stringify(workflowPayload)
-      },
-      3 // maxRetries
-    );
+        3 // maxRetries
+      );
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -348,18 +358,21 @@ return {
     // Activate workflow after creation (active field is read-only on create)
     let isActive = false;
     try {
-      const activateRes = await fetchWithRetry(
-        `${N8N_API_URL}/api/v1/workflows/${workflowData.id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'X-N8N-API-KEY': N8N_API_KEY,
-            'Content-Type': 'application/json'
+      const activateRes = await circuitBreaker.execute(async () => {
+        return await fetchWithRetry(
+          `${N8N_API_URL}/api/v1/workflows/${workflowData.id}`,
+          {
+            method: 'PUT',
+            headers: {
+              'X-N8N-API-KEY': N8N_API_KEY,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ ...workflowData, active: true })
           },
-          body: JSON.stringify({ ...workflowData, active: true })
-        },
-        3 // maxRetries
-      );
+          3 // maxRetries
+        );
+      });
+      
       if (!activateRes.ok) {
         const text = await activateRes.text();
         console.error('Failed to activate workflow in N8N:', activateRes.status, text);

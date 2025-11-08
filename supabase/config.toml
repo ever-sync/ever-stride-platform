@@ -21,6 +21,14 @@ verify_jwt = true
 [functions.n8n-get-stats]
 verify_jwt = true
 
+# N8N health check
+[functions.n8n-health-check]
+verify_jwt = true
+
+# N8N circuit breaker status
+[functions.n8n-circuit-status]
+verify_jwt = true
+
 # All other functions now require JWT authentication
 # Removed verify_jwt = false from:
 # - waha-session-create

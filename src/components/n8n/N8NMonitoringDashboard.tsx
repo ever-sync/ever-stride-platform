@@ -20,6 +20,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import type { N8NExecutionLog } from '@/types/n8n';
 import { format } from 'date-fns';
 import { ExecutionDetailsModal } from './ExecutionDetailsModal';
+import { N8NHealthStatus } from './N8NHealthStatus';
 
 export function N8NMonitoringDashboard() {
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
@@ -111,6 +112,9 @@ export function N8NMonitoringDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* Health Status Widget */}
+      <N8NHealthStatus />
 
       {/* Metric Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

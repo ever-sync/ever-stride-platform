@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { fetchWithRetry } from '../_shared/retry.ts';
+import { getCircuitBreaker } from '../_shared/circuit-breaker.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,18 +36,27 @@ serve(async (req) => {
 
     console.log(`Attempting to ${active ? 'activate' : 'deactivate'} workflow ${workflowId}`);
 
-    const response = await fetchWithRetry(
-      `${N8N_API_URL}/api/v1/workflows/${workflowId}`,
-      {
-        method: 'PATCH',
-        headers: {
-          'X-N8N-API-KEY': N8N_API_KEY,
-          'Content-Type': 'application/json'
+    // Use circuit breaker for N8N API call
+    const circuitBreaker = getCircuitBreaker('n8n-api', {
+      failureThreshold: 3,
+      successThreshold: 2,
+      timeout: 30000
+    });
+
+    const response = await circuitBreaker.execute(async () => {
+      return await fetchWithRetry(
+        `${N8N_API_URL}/api/v1/workflows/${workflowId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'X-N8N-API-KEY': N8N_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ active })
         },
-        body: JSON.stringify({ active })
-      },
-      3 // maxRetries
-    );
+        3 // maxRetries
+      );
+    });
 
     if (!response.ok) {
       const errorText = await response.text();

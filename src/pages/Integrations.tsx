@@ -20,6 +20,7 @@ import {
 import { useN8NWorkflows } from "@/hooks/useN8NWorkflows";
 import { WorkflowCard } from "@/components/n8n/WorkflowCard";
 import { TemplateSelector } from "@/components/n8n/TemplateSelector";
+import { N8NHealthStatus } from "@/components/n8n/N8NHealthStatus";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import {
   Select,
@@ -101,6 +102,9 @@ export default function Integrations() {
           </Button>
         </div>
       </div>
+
+      {/* N8N Health Status */}
+      <N8NHealthStatus />
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">

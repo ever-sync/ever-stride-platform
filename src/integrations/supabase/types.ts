@@ -669,6 +669,39 @@ export type Database = {
           },
         ]
       }
+      n8n_health_checks: {
+        Row: {
+          check_timestamp: string
+          circuit_breaker_state: string | null
+          created_at: string
+          error_message: string | null
+          id: number
+          metadata: Json | null
+          response_time_ms: number | null
+          status: string
+        }
+        Insert: {
+          check_timestamp?: string
+          circuit_breaker_state?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: number
+          metadata?: Json | null
+          response_time_ms?: number | null
+          status: string
+        }
+        Update: {
+          check_timestamp?: string
+          circuit_breaker_state?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: number
+          metadata?: Json | null
+          response_time_ms?: number | null
+          status?: string
+        }
+        Relationships: []
+      }
       n8n_workflow_templates: {
         Row: {
           category: string
@@ -1856,6 +1889,7 @@ export type Database = {
         Args: { _tenant_id: number; _user_id: string }
         Returns: boolean
       }
+      cleanup_old_health_checks: { Args: never; Returns: undefined }
       create_tenant_with_owner: {
         Args: {
           p_tenant_email: string
