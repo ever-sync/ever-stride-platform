@@ -29,6 +29,7 @@ import WhatsAppTest from "./pages/WhatsAppTest";
 import WhatsAppDashboard from "./pages/WhatsAppDashboard";
 import ChatAnalytics from "./pages/ChatAnalytics";
 import N8NMonitoring from "./pages/N8NMonitoring";
+import AgentMonitoring from "./pages/AgentMonitoring";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +82,14 @@ const App = () => (
                   <AppShell>
                     <Agents />
                   </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/agents/:agentId/monitoring"
+              element={
+                <AuthGuard>
+                  <AgentMonitoring />
                 </AuthGuard>
               }
             />

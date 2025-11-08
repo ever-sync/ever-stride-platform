@@ -1,0 +1,222 @@
+{
+  "name": "Atendimento IA - {{agent_name}}",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-{{agent_id}}",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT * FROM agents_v2 WHERE id = '{{agent_id}}' LIMIT 1",
+        "additionalFields": {}
+      },
+      "id": "get_agent_config",
+      "name": "Buscar Config Agente",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT content, metadata FROM documents WHERE agent_id = '{{agent_id}}' ORDER BY embedding <-> '{{ $json.query_embedding }}' LIMIT 3",
+        "additionalFields": {}
+      },
+      "id": "search_knowledge",
+      "name": "Buscar Conhecimento (RAG)",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "model": "={{ $('Buscar Config Agente').item.json.modelo_ia }}",
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system",
+              "content": "={{ $('Buscar Config Agente').item.json.prompt_sistema }}\n\nContexto da base de conhecimento:\n{{ $json.documents }}"
+            },
+            {
+              "role": "user",
+              "content": "={{ $('Webhook Trigger').item.json.body.message }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": "={{ $('Buscar Config Agente').item.json.temperatura }}",
+          "maxTokens": "={{ $('Buscar Config Agente').item.json.max_tokens }}"
+        }
+      },
+      "id": "ai_chat",
+      "name": "Processar com IA",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "2",
+          "name": "OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "agent_events",
+        "data": {
+          "agent_id": "={{agent_id}}",
+          "event_type": "message_sent",
+          "severity": "info",
+          "event_data": {
+            "input": "={{ $('Webhook Trigger').item.json.body.message }}",
+            "output": "={{ $json.response }}",
+            "from": "={{ $('Webhook Trigger').item.json.body.from }}"
+          },
+          "tokens_used": "={{ $json.usage.total_tokens }}",
+          "custo_brl": "={{ $json.usage.total_tokens * 0.0001 * 5.80 }}",
+          "latencia_ms": "={{ $json.latency }}"
+        }
+      },
+      "id": "log_event",
+      "name": "Registrar Evento",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Buscar Config Agente').item.json.waha_webhook_url || 'https://waha.example.com/send' }}",
+        "method": "POST",
+        "body": {
+          "session": "={{ $('Webhook Trigger').item.json.body.session }}",
+          "chatId": "={{ $('Webhook Trigger').item.json.body.from }}",
+          "text": "={{ $('Processar com IA').item.json.response }}"
+        }
+      },
+      "id": "send_whatsapp",
+      "name": "Enviar WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/functions/v1/n8n-webhook-handler",
+        "method": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "body": {
+          "workflow_id": "={{ $workflow.id }}",
+          "execution_id": "={{ $execution.id }}",
+          "status": "success",
+          "started_at": "={{ $execution.startedAt }}",
+          "finished_at": "={{ new Date().toISOString() }}",
+          "agent_id": "={{agent_id}}",
+          "tokens_used": "={{ $('Processar com IA').item.json.usage.total_tokens }}",
+          "custo_brl": "={{ $('Processar com IA').item.json.usage.total_tokens * 0.0001 * 5.80 }}",
+          "input_data": {
+            "message": "={{ $('Webhook Trigger').item.json.body.message }}"
+          },
+          "output_data": {
+            "response": "={{ $('Processar com IA').item.json.response }}"
+          }
+        }
+      },
+      "id": "notify_supabase",
+      "name": "Notificar Supabase (Success)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "agent_events",
+        "data": {
+          "agent_id": "={{agent_id}}",
+          "event_type": "error",
+          "severity": "error",
+          "event_data": {
+            "error_node": "={{ $json.node }}",
+            "error_message": "={{ $json.message }}"
+          },
+          "error_message": "={{ $json.message }}"
+        }
+      },
+      "id": "log_error",
+      "name": "Registrar Erro",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1050, 500],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.SUPABASE_URL }}/functions/v1/n8n-webhook-handler",
+        "method": "POST",
+        "body": {
+          "workflow_id": "={{ $workflow.id }}",
+          "execution_id": "={{ $execution.id }}",
+          "status": "error",
+          "started_at": "={{ $execution.startedAt }}",
+          "finished_at": "={{ new Date().toISOString() }}",
+          "agent_id": "={{agent_id}}",
+          "error_message": "={{ $('log_error').item.json.error_message }}",
+          "failed_node": "={{ $('log_error').item.json.error_node }}"
+        }
+      },
+      "id": "notify_error",
+      "name": "Notificar Erro Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1250, 500]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{ "node": "Buscar Config Agente", "type": "main", "index": 0 }]]
+    },
+    "Buscar Config Agente": {
+      "main": [[{ "node": "Buscar Conhecimento (RAG)", "type": "main", "index": 0 }]]
+    },
+    "Buscar Conhecimento (RAG)": {
+      "main": [[{ "node": "Processar com IA", "type": "main", "index": 0 }]]
+    },
+    "Processar com IA": {
+      "main": [
+        [{ "node": "Registrar Evento", "type": "main", "index": 0 }],
+        [{ "node": "Registrar Erro", "type": "main", "index": 0 }]
+      ]
+    },
+    "Registrar Evento": {
+      "main": [[{ "node": "Enviar WhatsApp", "type": "main", "index": 0 }]]
+    },
+    "Enviar WhatsApp": {
+      "main": [[{ "node": "Notificar Supabase (Success)", "type": "main", "index": 0 }]]
+    },
+    "Registrar Erro": {
+      "main": [[{ "node": "Notificar Erro Supabase", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "",
+    "timezone": "America/Sao_Paulo"
+  }
+}
