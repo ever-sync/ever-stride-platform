@@ -45,6 +45,8 @@ serve(async (req) => {
     }
 
     console.log('Using N8N API URL:', N8N_API_URL);
+    console.log('N8N_API_KEY is set:', !!N8N_API_KEY);
+    console.log('N8N_API_KEY length:', N8N_API_KEY?.length || 0);
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -222,7 +224,23 @@ return {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('N8N API error:', response.status, errorText);
-      throw new Error(`Failed to create workflow: ${response.statusText}`);
+      console.error('Request URL:', `${N8N_API_URL}/api/v1/workflows`);
+      console.error('Request headers:', {
+        'X-N8N-API-KEY': N8N_API_KEY ? `${N8N_API_KEY.substring(0, 4)}...` : 'NOT SET',
+        'Content-Type': 'application/json'
+      });
+      
+      if (response.status === 401) {
+        throw new Error(
+          `N8N API authentication failed. Please verify:\n` +
+          `1. N8N_API_KEY secret is correct\n` +
+          `2. API key has permission to create workflows\n` +
+          `3. N8N instance URL is correct: ${N8N_API_URL}\n` +
+          `Error details: ${errorText}`
+        );
+      }
+      
+      throw new Error(`Failed to create workflow: ${response.statusText} - ${errorText}`);
     }
 
     const workflowData = await response.json();
