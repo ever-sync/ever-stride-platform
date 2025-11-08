@@ -14,6 +14,141 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_events: {
+        Row: {
+          agent_id: string
+          chat_id: number | null
+          created_at: string | null
+          custo_brl: number | null
+          error_code: string | null
+          error_message: string | null
+          error_stack: string | null
+          event_data: Json
+          event_type: string
+          id: number
+          latencia_ms: number | null
+          session_id: string | null
+          severity: string | null
+          tenant_id: number
+          tokens_used: number | null
+          workflow_execution_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          chat_id?: number | null
+          created_at?: string | null
+          custo_brl?: number | null
+          error_code?: string | null
+          error_message?: string | null
+          error_stack?: string | null
+          event_data: Json
+          event_type: string
+          id?: number
+          latencia_ms?: number | null
+          session_id?: string | null
+          severity?: string | null
+          tenant_id: number
+          tokens_used?: number | null
+          workflow_execution_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          chat_id?: number | null
+          created_at?: string | null
+          custo_brl?: number | null
+          error_code?: string | null
+          error_message?: string | null
+          error_stack?: string | null
+          event_data?: Json
+          event_type?: string
+          id?: number
+          latencia_ms?: number | null
+          session_id?: string | null
+          severity?: string | null
+          tenant_id?: number
+          tokens_used?: number | null
+          workflow_execution_id?: string | null
+        }
+        Relationships: []
+      }
+      agent_health_snapshots: {
+        Row: {
+          agent_id: string
+          avg_response_time_ms: number | null
+          avg_tokens_per_message: number | null
+          created_at: string | null
+          error_types: Json | null
+          failed_messages: number | null
+          health_score: number | null
+          id: string
+          p95_response_time_ms: number | null
+          p99_response_time_ms: number | null
+          period_end: string
+          period_start: string
+          snapshot_type: string
+          status: string | null
+          success_rate: number | null
+          successful_messages: number | null
+          tenant_id: number
+          total_custo_brl: number | null
+          total_errors: number | null
+          total_messages: number | null
+          total_tokens_used: number | null
+          workflow_executions: number | null
+          workflow_failures: number | null
+        }
+        Insert: {
+          agent_id: string
+          avg_response_time_ms?: number | null
+          avg_tokens_per_message?: number | null
+          created_at?: string | null
+          error_types?: Json | null
+          failed_messages?: number | null
+          health_score?: number | null
+          id?: string
+          p95_response_time_ms?: number | null
+          p99_response_time_ms?: number | null
+          period_end: string
+          period_start: string
+          snapshot_type: string
+          status?: string | null
+          success_rate?: number | null
+          successful_messages?: number | null
+          tenant_id: number
+          total_custo_brl?: number | null
+          total_errors?: number | null
+          total_messages?: number | null
+          total_tokens_used?: number | null
+          workflow_executions?: number | null
+          workflow_failures?: number | null
+        }
+        Update: {
+          agent_id?: string
+          avg_response_time_ms?: number | null
+          avg_tokens_per_message?: number | null
+          created_at?: string | null
+          error_types?: Json | null
+          failed_messages?: number | null
+          health_score?: number | null
+          id?: string
+          p95_response_time_ms?: number | null
+          p99_response_time_ms?: number | null
+          period_end?: string
+          period_start?: string
+          snapshot_type?: string
+          status?: string | null
+          success_rate?: number | null
+          successful_messages?: number | null
+          tenant_id?: number
+          total_custo_brl?: number | null
+          total_errors?: number | null
+          total_messages?: number | null
+          total_tokens_used?: number | null
+          workflow_executions?: number | null
+          workflow_failures?: number | null
+        }
+        Relationships: []
+      }
       agents: {
         Row: {
           ativo: boolean | null
@@ -94,6 +229,117 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      agents_v2: {
+        Row: {
+          client_id: string | null
+          created_at: string | null
+          created_by: string | null
+          custo_acumulado_mes: number | null
+          descricao: string | null
+          id: string
+          limite_msgs_mes: number | null
+          limite_tokens_mes: number | null
+          max_tokens: number | null
+          modelo_ia: string | null
+          msgs_usadas_mes: number | null
+          n8n_last_sync: string | null
+          n8n_status: string | null
+          n8n_webhook_url: string | null
+          n8n_workflow_id: string | null
+          nome: string
+          prompt_sistema: string
+          saudacao_inicial: string | null
+          status: string | null
+          taxa_sucesso: number | null
+          temperatura: number | null
+          tempo_medio_resposta: number | null
+          tenant_id: number
+          tipo: string | null
+          tokens_usados_mes: number | null
+          total_conversas: number | null
+          total_msgs_enviadas: number | null
+          ultima_conversa_em: string | null
+          ultimo_erro: string | null
+          ultimo_erro_em: string | null
+          updated_at: string | null
+          waha_session_id: string | null
+          whatsapp_connected: boolean | null
+          whatsapp_phone: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          custo_acumulado_mes?: number | null
+          descricao?: string | null
+          id?: string
+          limite_msgs_mes?: number | null
+          limite_tokens_mes?: number | null
+          max_tokens?: number | null
+          modelo_ia?: string | null
+          msgs_usadas_mes?: number | null
+          n8n_last_sync?: string | null
+          n8n_status?: string | null
+          n8n_webhook_url?: string | null
+          n8n_workflow_id?: string | null
+          nome: string
+          prompt_sistema: string
+          saudacao_inicial?: string | null
+          status?: string | null
+          taxa_sucesso?: number | null
+          temperatura?: number | null
+          tempo_medio_resposta?: number | null
+          tenant_id: number
+          tipo?: string | null
+          tokens_usados_mes?: number | null
+          total_conversas?: number | null
+          total_msgs_enviadas?: number | null
+          ultima_conversa_em?: string | null
+          ultimo_erro?: string | null
+          ultimo_erro_em?: string | null
+          updated_at?: string | null
+          waha_session_id?: string | null
+          whatsapp_connected?: boolean | null
+          whatsapp_phone?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          custo_acumulado_mes?: number | null
+          descricao?: string | null
+          id?: string
+          limite_msgs_mes?: number | null
+          limite_tokens_mes?: number | null
+          max_tokens?: number | null
+          modelo_ia?: string | null
+          msgs_usadas_mes?: number | null
+          n8n_last_sync?: string | null
+          n8n_status?: string | null
+          n8n_webhook_url?: string | null
+          n8n_workflow_id?: string | null
+          nome?: string
+          prompt_sistema?: string
+          saudacao_inicial?: string | null
+          status?: string | null
+          taxa_sucesso?: number | null
+          temperatura?: number | null
+          tempo_medio_resposta?: number | null
+          tenant_id?: number
+          tipo?: string | null
+          tokens_usados_mes?: number | null
+          total_conversas?: number | null
+          total_msgs_enviadas?: number | null
+          ultima_conversa_em?: string | null
+          ultimo_erro?: string | null
+          ultimo_erro_em?: string | null
+          updated_at?: string | null
+          waha_session_id?: string | null
+          whatsapp_connected?: boolean | null
+          whatsapp_phone?: string | null
+        }
+        Relationships: []
       }
       chat_messages: {
         Row: {
@@ -668,6 +914,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      n8n_executions: {
+        Row: {
+          agent_id: string
+          created_at: string | null
+          custo_brl: number | null
+          duration_ms: number | null
+          error_message: string | null
+          failed_node: string | null
+          finished_at: string | null
+          id: string
+          input_summary: Json | null
+          n8n_execution_id: string | null
+          n8n_workflow_id: string
+          output_summary: Json | null
+          started_at: string
+          status: string
+          tenant_id: number
+          tokens_used: number | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string | null
+          custo_brl?: number | null
+          duration_ms?: number | null
+          error_message?: string | null
+          failed_node?: string | null
+          finished_at?: string | null
+          id?: string
+          input_summary?: Json | null
+          n8n_execution_id?: string | null
+          n8n_workflow_id: string
+          output_summary?: Json | null
+          started_at: string
+          status: string
+          tenant_id: number
+          tokens_used?: number | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string | null
+          custo_brl?: number | null
+          duration_ms?: number | null
+          error_message?: string | null
+          failed_node?: string | null
+          finished_at?: string | null
+          id?: string
+          input_summary?: Json | null
+          n8n_execution_id?: string | null
+          n8n_workflow_id?: string
+          output_summary?: Json | null
+          started_at?: string
+          status?: string
+          tenant_id?: number
+          tokens_used?: number | null
+        }
+        Relationships: []
       }
       n8n_health_checks: {
         Row: {
@@ -1934,6 +2237,10 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_agent_health_score: {
+        Args: { p_agent_id: string }
+        Returns: number
+      }
       can_user_write: {
         Args: { _tenant_id: number; _user_id: string }
         Returns: boolean
@@ -1978,6 +2285,7 @@ export type Database = {
           end_user_id: number
         }[]
       }
+      generate_daily_health_snapshot: { Args: never; Returns: undefined }
       gerar_relatorio_custos_tenant: {
         Args: {
           p_fim: string
@@ -2055,6 +2363,19 @@ export type Database = {
         Returns: undefined
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      log_agent_event: {
+        Args: {
+          p_agent_id: string
+          p_custo_brl?: number
+          p_error_message?: string
+          p_event_data: Json
+          p_event_type: string
+          p_latencia_ms?: number
+          p_severity: string
+          p_tokens_used?: number
+        }
+        Returns: number
+      }
       log_execucao_llm: {
         Args: {
           p_accuracy?: number
