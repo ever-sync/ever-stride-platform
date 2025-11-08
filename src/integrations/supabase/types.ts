@@ -936,6 +936,56 @@ export type Database = {
           },
         ]
       }
+      session_health_checks: {
+        Row: {
+          average_response_time_ms: number | null
+          check_timestamp: string
+          created_at: string
+          critical_issues: Json | null
+          failed_sessions: Json | null
+          healthy_sessions: number
+          id: string
+          recommendations: string[] | null
+          tenant_id: number
+          total_sessions: number
+          unhealthy_sessions: number
+        }
+        Insert: {
+          average_response_time_ms?: number | null
+          check_timestamp?: string
+          created_at?: string
+          critical_issues?: Json | null
+          failed_sessions?: Json | null
+          healthy_sessions: number
+          id?: string
+          recommendations?: string[] | null
+          tenant_id: number
+          total_sessions: number
+          unhealthy_sessions: number
+        }
+        Update: {
+          average_response_time_ms?: number | null
+          check_timestamp?: string
+          created_at?: string
+          critical_issues?: Json | null
+          failed_sessions?: Json | null
+          healthy_sessions?: number
+          id?: string
+          recommendations?: string[] | null
+          tenant_id?: number
+          total_sessions?: number
+          unhealthy_sessions?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_health_checks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       super_admins: {
         Row: {
           created_at: string
@@ -1253,6 +1303,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_preferences: {
+        Row: {
+          auto_open_recovery_wizard: boolean | null
+          bulk_operation_batch_size: number | null
+          created_at: string | null
+          health_check_interval_minutes: number | null
+          notification_preferences: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_open_recovery_wizard?: boolean | null
+          bulk_operation_batch_size?: number | null
+          created_at?: string | null
+          health_check_interval_minutes?: number | null
+          notification_preferences?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_open_recovery_wizard?: boolean | null
+          bulk_operation_batch_size?: number | null
+          created_at?: string | null
+          health_check_interval_minutes?: number | null
+          notification_preferences?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       waha_session_logs: {
         Row: {

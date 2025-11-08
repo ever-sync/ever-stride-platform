@@ -16,6 +16,11 @@ export interface WahaSession {
   last_activity?: string;
   reconnect_attempts: number;
   webhook_url?: string;
+  last_error?: string;
+  last_error_at?: string;
+  avg_response_time_ms?: number;
+  success_rate?: number;
+  failed_messages?: number;
   created_at: string;
   updated_at: string;
 }

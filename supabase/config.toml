@@ -23,3 +23,5 @@ verify_jwt = false
 # - ai-agent-chat
 # - waha-sync-sessions
 # - waha-health-check
+# - waha-health-monitor (requires JWT)
+# - waha-bulk-operation (requires JWT)
