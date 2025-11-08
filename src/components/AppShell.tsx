@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsSuperAdmin } from "@/hooks/useIsSuperAdmin";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TenantSelector } from "@/components/TenantSelector";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { NavLink } from "@/components/NavLink";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +20,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -27,8 +44,6 @@ import {
   LogOut,
   Moon,
   Sun,
-  Menu,
-  X,
   Building2,
   Bot,
   BookOpen,
@@ -39,6 +54,8 @@ import {
   BarChart,
   Plug,
   Activity,
+  GitCompare,
+  Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
@@ -47,59 +64,277 @@ interface AppShellProps {
   children: ReactNode;
 }
 
-export function AppShell({ children }: AppShellProps) {
-  const { userSession, signOut } = useAuth();
+function AppSidebarContent() {
   const { isSuperAdmin } = useIsSuperAdmin();
   const { hasNewMessage } = useNotifications({ enableSound: true, enableToast: true });
   const location = useLocation();
-  const [isDark, setIsDark] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [navigation, setNavigation] = useState([
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Clientes", href: "/clients", icon: Building2 },
-    { name: "Agentes", href: "/agents", icon: Bot },
-    { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
-    { name: "Chats", href: "/chats", icon: MessageSquare },
-    { name: "Analytics Chats", href: "/chat-analytics", icon: BarChart },
-    { name: "WhatsApp", href: "/whatsapp-connection", icon: Smartphone },
-    { name: "Dashboard WhatsApp", href: "/whatsapp-dashboard", icon: TrendingUp },
-    { name: "Teste Chat IA", href: "/test-agent-chat", icon: Zap },
-    { name: "Teste WhatsApp", href: "/whatsapp-test", icon: Smartphone },
-    { name: "Uso de Tokens", href: "/token-usage", icon: TrendingUp },
-    { name: "Planos", href: "/planos", icon: CreditCard },
-    { name: "Relatórios", href: "/reports", icon: BarChart },
-    { name: "Relatórios por Cliente", href: "/client-reports", icon: FileText },
-    { name: "Configurações", href: "/settings", icon: Settings },
-    { name: "Equipe", href: "/users", icon: Users },
-    { name: "Integrações", href: "/integrations", icon: Plug },
-    { name: "Monitoramento N8N", href: "/n8n-monitoring", icon: Activity },
-  ]);
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
+  const [showDevMode, setShowDevMode] = useState(() => {
+    const saved = localStorage.getItem("showDevMode");
+    return saved === "true";
+  });
 
   useEffect(() => {
-    if (isSuperAdmin) {
-      setNavigation([
-        { name: "Painel Master", href: "/master-admin", icon: Shield },
-        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { name: "Clientes", href: "/clients", icon: Building2 },
-        { name: "Agentes", href: "/agents", icon: Bot },
-        { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
-        { name: "Chats", href: "/chats", icon: MessageSquare },
-        { name: "Analytics Chats", href: "/chat-analytics", icon: BarChart },
-        { name: "WhatsApp", href: "/whatsapp-connection", icon: Smartphone },
-        { name: "Dashboard WhatsApp", href: "/whatsapp-dashboard", icon: TrendingUp },
-        { name: "Teste Chat IA", href: "/test-agent-chat", icon: Zap },
-        { name: "Teste WhatsApp", href: "/whatsapp-test", icon: Smartphone },
-        { name: "Uso de Tokens", href: "/token-usage", icon: TrendingUp },
-        { name: "Planos", href: "/planos", icon: CreditCard },
-        { name: "Relatórios", href: "/reports", icon: BarChart },
-        { name: "Relatórios por Cliente", href: "/client-reports", icon: FileText },
-        { name: "Configurações", href: "/settings", icon: Settings },
-        { name: "Equipe", href: "/users", icon: Users },
-        { name: "Integrações", href: "/integrations", icon: Plug },
-        { name: "Monitoramento N8N", href: "/n8n-monitoring", icon: Activity },
-      ]);
-    }
-  }, [isSuperAdmin]);
+    localStorage.setItem("showDevMode", showDevMode.toString());
+  }, [showDevMode]);
+
+  const mainItems = [
+    { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+    { title: "Clientes", url: "/clients", icon: Building2 },
+  ];
+
+  const intelligenceItems = [
+    { title: "Agentes", url: "/agents", icon: Bot },
+    { title: "Comparar Agentes", url: "/agents/comparison", icon: GitCompare },
+    { title: "Base de Conhecimento", url: "/knowledge-base", icon: BookOpen },
+  ];
+
+  const conversationItems = [
+    { title: "Chats", url: "/chats", icon: MessageSquare, badge: hasNewMessage },
+    { title: "Analytics Chats", url: "/chat-analytics", icon: BarChart },
+  ];
+
+  const whatsappItems = [
+    { title: "WhatsApp", url: "/whatsapp-connection", icon: Smartphone },
+    { title: "Dashboard WhatsApp", url: "/whatsapp-dashboard", icon: TrendingUp },
+  ];
+
+  const analyticsItems = [
+    { title: "Uso de Tokens", url: "/token-usage", icon: TrendingUp },
+    { title: "Relatórios", url: "/reports", icon: BarChart },
+    { title: "Relatórios por Cliente", url: "/client-reports", icon: FileText },
+  ];
+
+  const settingsItems = [
+    { title: "Configurações", url: "/settings", icon: Settings },
+    { title: "Equipe", url: "/users", icon: Users },
+    { title: "Integrações", url: "/integrations", icon: Plug },
+    { title: "Planos", url: "/planos", icon: CreditCard },
+  ];
+
+  const devItems = [
+    { title: "Teste Chat IA", url: "/test-agent-chat", icon: Zap },
+    { title: "Teste WhatsApp", url: "/whatsapp-test", icon: Smartphone },
+    { title: "Monitoramento N8N", url: "/n8n-monitoring", icon: Activity },
+  ];
+
+  return (
+    <>
+      <SidebarContent>
+        {isSuperAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Sistema</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to="/master-admin" 
+                      className="hover:bg-muted/50" 
+                      activeClassName="bg-muted text-primary font-medium"
+                    >
+                      <Shield className="h-4 w-4" />
+                      {!isCollapsed && <span>Painel Master</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Principal</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {mainItems.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={item.url} 
+                      className="hover:bg-muted/50" 
+                      activeClassName="bg-muted text-primary font-medium"
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!isCollapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Inteligência</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {intelligenceItems.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={item.url} 
+                      className="hover:bg-muted/50" 
+                      activeClassName="bg-muted text-primary font-medium"
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!isCollapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Conversas</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {conversationItems.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={item.url} 
+                      className="hover:bg-muted/50 relative" 
+                      activeClassName="bg-muted text-primary font-medium"
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!isCollapsed && <span>{item.title}</span>}
+                      {item.badge && (
+                        <Badge 
+                          variant="destructive" 
+                          className="ml-auto h-5 px-1.5 text-xs animate-pulse"
+                        >
+                          {!isCollapsed && "Nova"}
+                        </Badge>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>WhatsApp</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {whatsappItems.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={item.url} 
+                      className="hover:bg-muted/50" 
+                      activeClassName="bg-muted text-primary font-medium"
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!isCollapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Análises</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {analyticsItems.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={item.url} 
+                      className="hover:bg-muted/50" 
+                      activeClassName="bg-muted text-primary font-medium"
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!isCollapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Configurações</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {settingsItems.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={item.url} 
+                      className="hover:bg-muted/50" 
+                      activeClassName="bg-muted text-primary font-medium"
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!isCollapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {showDevMode && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-2">
+              <Wrench className="h-3 w-3" />
+              {!isCollapsed && "Desenvolvimento"}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {devItems.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        className="hover:bg-muted/50" 
+                        activeClassName="bg-muted text-primary font-medium"
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {!isCollapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+      </SidebarContent>
+
+      <SidebarFooter>
+        {!isCollapsed && (
+          <div className="flex items-center justify-between px-4 py-2 border-t">
+            <Label htmlFor="dev-mode" className="text-xs text-muted-foreground cursor-pointer">
+              Modo Dev
+            </Label>
+            <Switch
+              id="dev-mode"
+              checked={showDevMode}
+              onCheckedChange={setShowDevMode}
+            />
+          </div>
+        )}
+      </SidebarFooter>
+    </>
+  );
+}
+
+export function AppShell({ children }: AppShellProps) {
+  const { userSession, signOut } = useAuth();
+  const location = useLocation();
+  const [isDark, setIsDark] = useState(false);
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -115,137 +350,104 @@ export function AppShell({ children }: AppShellProps) {
         .slice(0, 2)
     : userSession?.profile?.email?.[0]?.toUpperCase() || "U";
 
+  const pageTitle = 
+    location.pathname === "/master-admin" ? "Painel Master" :
+    location.pathname === "/dashboard" ? "Dashboard" :
+    location.pathname === "/clients" ? "Clientes" :
+    location.pathname.startsWith("/agents/comparison") ? "Comparar Agentes" :
+    location.pathname.startsWith("/agents") ? "Agentes" :
+    location.pathname === "/knowledge-base" ? "Base de Conhecimento" :
+    location.pathname === "/chats" ? "Chats" :
+    location.pathname === "/chat-analytics" ? "Analytics Chats" :
+    location.pathname === "/whatsapp-connection" ? "WhatsApp" :
+    location.pathname === "/whatsapp-dashboard" ? "Dashboard WhatsApp" :
+    location.pathname === "/whatsapp-test" ? "Teste WhatsApp" :
+    location.pathname === "/test-agent-chat" ? "Teste Chat IA" :
+    location.pathname === "/token-usage" ? "Uso de Tokens" :
+    location.pathname === "/reports" ? "Relatórios" :
+    location.pathname === "/client-reports" ? "Relatórios por Cliente" :
+    location.pathname === "/settings" ? "Configurações" :
+    location.pathname === "/users" ? "Equipe" :
+    location.pathname === "/integrations" ? "Integrações" :
+    location.pathname === "/planos" ? "Planos" :
+    location.pathname === "/n8n-monitoring" ? "Monitoramento N8N" :
+    "Construtor de IA";
+
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Mobile menu button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="fixed top-3 left-3 z-50 lg:hidden"
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-      >
-        {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-      </Button>
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 border-r border-border bg-card transition-transform duration-300",
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        )}
-      >
-        <div className="flex h-full flex-col">
-          {/* Logo */}
-          <div className="flex h-16 items-center border-b border-border px-6">
-            <img src={logo} alt="Construtor de IA" className="h-8 w-auto" />
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <Sidebar collapsible="icon">
+          <div className="flex h-14 items-center border-b px-4">
+            <img src={logo} alt="Construtor de IA" className="h-6 w-auto" />
           </div>
+          <AppSidebarContent />
+        </Sidebar>
 
-          {/* Navigation */}
-          <nav className="flex-1 space-y-1 p-4">
-            {navigation.map((item) => {
-              const isActive = location.pathname.startsWith(item.href);
-              const isChatsPage = item.href === "/chats";
-              return (
-                <Link key={item.href} to={item.href}>
-                  <Button
-                    variant={isActive ? "secondary" : "ghost"}
-                    className={cn(
-                      "w-full justify-start transition-smooth relative",
-                      isActive && "bg-primary/10 text-primary hover:bg-primary/20"
-                    )}
-                  >
-                    <item.icon className="mr-3 h-5 w-5" />
-                    {item.name}
-                    {isChatsPage && hasNewMessage && (
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-destructive animate-pulse" />
-                    )}
-                  </Button>
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Tenant info */}
-          <div className="border-t border-border p-4">
-            <div className="text-xs text-muted-foreground mb-1">Organização</div>
-            <div className="font-semibold truncate">{userSession?.tenant?.nome}</div>
-            <div className="text-xs text-muted-foreground mt-1 capitalize">
-              {userSession?.role?.toLowerCase()}
+        <div className="flex flex-1 flex-col">
+          <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-card/95 backdrop-blur px-4 gap-4">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger />
+              <h2 className="text-base sm:text-lg font-semibold truncate">
+                {pageTitle}
+              </h2>
+              <TenantSelector />
             </div>
-          </div>
+
+            <div className="flex items-center gap-2 sm:gap-4">
+              <AgentAlertsPopover />
+              <N8NAlerts />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className="h-9 w-9"
+              >
+                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                    <Avatar className="h-9 w-9">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {userSession?.profile?.full_name || "Usuário"}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {userSession?.profile?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <div className="flex flex-col gap-1 w-full">
+                      <div className="text-xs text-muted-foreground">Organização</div>
+                      <div className="font-medium text-sm">{userSession?.tenant?.nome}</div>
+                      <div className="text-xs text-muted-foreground capitalize">
+                        {userSession?.role?.toLowerCase()}
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut()}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </header>
+
+          <main className="flex-1 p-4 sm:p-6">{children}</main>
         </div>
-      </aside>
-
-      {/* Main content */}
-      <div className="flex flex-1 flex-col lg:pl-64">
-        {/* Header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card/95 backdrop-blur px-4 sm:px-6">
-          <div className="flex items-center gap-4 pl-12 lg:pl-0">
-            <h2 className="text-base sm:text-lg font-semibold truncate">
-              {navigation.find((item) => location.pathname.startsWith(item.href))?.name ||
-                "Construtor de IA"}
-            </h2>
-            <TenantSelector />
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-4">
-            {hasNewMessage && (
-              <Badge variant="destructive" className="animate-pulse">
-                Nova mensagem
-              </Badge>
-            )}
-            <AgentAlertsPopover />
-            <N8NAlerts />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="h-9 w-9"
-            >
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {userSession?.profile?.full_name || "Usuário"}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {userSession?.profile?.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => signOut()}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-
-        {/* Page content */}
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
       </div>
-
-      {/* Mobile overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm lg:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-    </div>
+    </SidebarProvider>
   );
 }
