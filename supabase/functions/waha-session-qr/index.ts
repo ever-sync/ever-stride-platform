@@ -37,23 +37,36 @@ serve(async (req) => {
       normalizedUrl = `https://${wahaApiUrl}`;
     }
 
-    const response = await fetchWithRetry(`${normalizedUrl}/api/sessions/${sessionName}/qr`, {
+    // Use the correct WAHA endpoint for QR code
+    const response = await fetchWithRetry(`${normalizedUrl}/api/${sessionName}/auth/qr`, {
       headers: {
         'X-Api-Key': wahaApiKey
       }
     }, 2);
 
     if (!response.ok) {
+      console.error(`WAHA QR API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text().catch(() => 'Unable to read error');
+      console.error('Error body:', errorText);
       return new Response(
-        JSON.stringify({ qr: null }),
+        JSON.stringify({ qr: null, expiresAt: null }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const data = await response.json();
+    console.log('WAHA QR response:', JSON.stringify(data).substring(0, 200));
+    
+    // Extract QR code from multiple possible formats
+    const qr = data.qr || data.value || data.code || data.data || data?.result?.qr || null;
+    
+    // Extract expiration with fallback (60 seconds if not provided)
+    const expiresAt = data.expiresAt || data.expires_at || data.expire_at || 
+                      (data.ttl ? new Date(Date.now() + data.ttl * 1000).toISOString() : 
+                       new Date(Date.now() + 60000).toISOString());
     
     return new Response(
-      JSON.stringify({ qr: data.qr || null }),
+      JSON.stringify({ qr, expiresAt }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

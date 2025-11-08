@@ -123,16 +123,21 @@ export function useWahaSession(clientId?: string) {
     if (!session) return;
 
     try {
-      const qr = await wahaClient.getQRCode(session.session_name);
+      const { qr, expiresAt } = await wahaClient.getQRCode(session.session_name);
       
       if (qr) {
+        const qrExpiresAt = expiresAt || new Date(Date.now() + 60000).toISOString();
+        
         // Atualizar no banco
         await supabase
           .from('waha_sessions')
-          .update({ qr_code: qr })
+          .update({ 
+            qr_code: qr,
+            qr_expires_at: qrExpiresAt
+          })
           .eq('id', session.id);
         
-        setSession({ ...session, qr_code: qr });
+        setSession({ ...session, qr_code: qr, qr_expires_at: qrExpiresAt });
       }
     } catch (error) {
       console.error('Erro ao atualizar QR:', error);
@@ -278,14 +283,21 @@ export function useWahaSession(clientId?: string) {
     const interval = setInterval(() => {
       if (session?.status === 'qr_code' || session?.status === 'connecting') {
         atualizarStatus();
+        
+        // Auto-fetch QR if status is qr_code but QR is missing or expired
         if (session.status === 'qr_code') {
-          atualizarQR();
+          const isQRExpired = session.qr_expires_at ? 
+            new Date(session.qr_expires_at).getTime() < Date.now() : true;
+          
+          if (!session.qr_code || isQRExpired) {
+            atualizarQR();
+          }
         }
       }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [clientId, session?.status]);
+  }, [clientId, session?.status, session?.qr_code, session?.qr_expires_at]);
 
   return {
     session,

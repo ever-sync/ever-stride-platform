@@ -67,10 +67,10 @@ export default function WhatsAppTest() {
       // Step 2: Obter QR Code
       updateStep(1, 'running')
       await new Promise(resolve => setTimeout(resolve, 2000)) // Aguarda 2s
-      const qr = await wahaClient.getQRCode(sessionData.session_name)
+      const { qr, expiresAt } = await wahaClient.getQRCode(sessionData.session_name)
       if (qr) {
         setQrCode(qr)
-        updateStep(1, 'success', 'QR Code obtido')
+        updateStep(1, 'success', `QR Code obtido (expira: ${expiresAt ? new Date(expiresAt).toLocaleTimeString() : 'N/A'})`)
       } else {
         updateStep(1, 'error', 'QR Code não disponível')
       }

@@ -70,7 +70,15 @@ export function QRCodeModal({ session, open, onClose }: QRCodeModalProps) {
           ) : needsQR && session.qr_code ? (
             <div className="space-y-4">
               <div className="bg-white p-4 rounded-lg">
-                <QRCode value={session.qr_code} size={256} />
+                {session.qr_code.startsWith('data:image') ? (
+                  <img 
+                    src={session.qr_code} 
+                    alt="QR Code WhatsApp"
+                    className="w-64 h-64 mx-auto"
+                  />
+                ) : (
+                  <QRCode value={session.qr_code} size={256} />
+                )}
               </div>
               
               {timeRemaining !== null && (

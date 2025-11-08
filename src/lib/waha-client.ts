@@ -25,13 +25,13 @@ export class WAHAClient {
     return data;
   }
 
-  async getQRCode(sessionName: string): Promise<string | null> {
+  async getQRCode(sessionName: string): Promise<{ qr: string | null; expiresAt?: string | null }> {
     const { data, error } = await supabase.functions.invoke('waha-session-qr', {
       body: { sessionName }
     });
 
     if (error) throw error;
-    return data.qr;
+    return { qr: data.qr || null, expiresAt: data.expiresAt || null };
   }
 
   async getSessionStatus(sessionName: string): Promise<string> {

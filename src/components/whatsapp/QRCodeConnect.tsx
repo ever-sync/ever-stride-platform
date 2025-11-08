@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Loader2, Smartphone, CheckCircle, XCircle, RefreshCw, Clock } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Progress } from '@/components/ui/progress'
+import QRCode from 'react-qr-code'
 
 interface QRCodeConnectProps {
   clientId: string
@@ -149,12 +150,16 @@ export function QRCodeConnect({ clientId, agentId }: QRCodeConnectProps) {
                 </div>
               ) : session.qr_code ? (
                 <div className="space-y-4">
-                  <div className="bg-background p-4 rounded-lg inline-block border-2 border-border">
-                    <img
-                      src={session.qr_code}
-                      alt="QR Code WhatsApp"
-                      className="w-64 h-64 mx-auto"
-                    />
+                  <div className="bg-white p-4 rounded-lg inline-block border-2 border-border">
+                    {session.qr_code.startsWith('data:image') ? (
+                      <img
+                        src={session.qr_code}
+                        alt="QR Code WhatsApp"
+                        className="w-64 h-64 mx-auto"
+                      />
+                    ) : (
+                      <QRCode value={session.qr_code} size={256} />
+                    )}
                   </div>
                   
                   {timeRemaining !== null && (

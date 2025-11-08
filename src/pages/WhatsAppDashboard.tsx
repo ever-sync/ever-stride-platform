@@ -381,7 +381,7 @@ export default function WhatsAppDashboard() {
                       )}
                     </div>
                     <div className="flex gap-2">
-                      {(session.status === 'SCAN_QR_CODE' || session.status === 'qr_code') && session.qr_code && (
+                      {(session.status === 'SCAN_QR_CODE' || session.status === 'qr_code') && (
                         <Button
                           size="sm"
                           variant="outline"
