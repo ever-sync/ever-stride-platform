@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
+import { Search, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Chat } from "@/types/database";
 
 export default function Chats() {
+  const navigate = useNavigate();
   const { userSession } = useAuth();
   const [chats, setChats] = useState<Chat[]>([]);
   const [search, setSearch] = useState("");
@@ -71,20 +73,30 @@ export default function Chats() {
       ) : (
         <div className="space-y-3">
           {filteredChats.map((chat) => (
-            <Card key={chat.id} className="p-4 hover:shadow-md transition-smooth cursor-pointer">
+            <Card 
+              key={chat.id} 
+              className="p-4 hover:shadow-md transition-smooth cursor-pointer"
+              onClick={() => navigate(`/chats/${chat.id}`)}
+            >
               <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">{chat.phone}</span>
-                    <Badge variant="secondary">Chat #{chat.id}</Badge>
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <MessageSquare className="h-5 w-5 text-primary" />
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Criado em{" "}
-                    {chat.created_at &&
-                      format(new Date(chat.created_at), "dd MMM yyyy, HH:mm", {
-                        locale: ptBR,
-                      })}
-                  </p>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{chat.phone}</span>
+                      <Badge variant="secondary">#{chat.id}</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Criado em{" "}
+                      {chat.created_at &&
+                        format(new Date(chat.created_at), "dd MMM yyyy 'às' HH:mm", {
+                          locale: ptBR,
+                        })}
+                    </p>
+                  </div>
                 </div>
               </div>
             </Card>

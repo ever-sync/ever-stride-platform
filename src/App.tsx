@@ -13,6 +13,7 @@ import Clients from "./pages/Clients";
 import Agents from "./pages/Agents";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import Chats from "./pages/Chats";
+import ChatDetail from "./pages/ChatDetail";
 import Reports from "./pages/Reports";
 import ClientReports from "./pages/ClientReports";
 import Settings from "./pages/Settings";
@@ -97,6 +98,16 @@ const App = () => (
                 <AuthGuard>
                   <AppShell>
                     <Chats />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/chats/:chatId"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <ChatDetail />
                   </AppShell>
                 </AuthGuard>
               }
