@@ -181,6 +181,33 @@ export type Database = {
           },
         ]
       }
+      circuit_breaker_state: {
+        Row: {
+          failure_count: number | null
+          last_failure_time: string | null
+          last_success_time: string | null
+          service_name: string
+          state: string
+          updated_at: string | null
+        }
+        Insert: {
+          failure_count?: number | null
+          last_failure_time?: string | null
+          last_success_time?: string | null
+          service_name: string
+          state?: string
+          updated_at?: string | null
+        }
+        Update: {
+          failure_count?: number | null
+          last_failure_time?: string | null
+          last_success_time?: string | null
+          service_name?: string
+          state?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           agent_id: string | null
@@ -231,6 +258,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      edge_function_metrics: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          execution_time_ms: number
+          function_name: string
+          id: number
+          metadata: Json | null
+          retry_count: number | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms: number
+          function_name: string
+          id?: number
+          metadata?: Json | null
+          retry_count?: number | null
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number
+          function_name?: string
+          id?: number
+          metadata?: Json | null
+          retry_count?: number | null
+          status?: string
+        }
+        Relationships: []
       }
       end_users: {
         Row: {
@@ -1412,6 +1472,17 @@ export type Database = {
         Returns: {
           relatorio_id: number
           tenant_id: number
+        }[]
+      }
+      get_edge_function_stats: {
+        Args: { p_function_name: string; p_hours?: number }
+        Returns: {
+          avg_execution_time: number
+          error_calls: number
+          p95_execution_time: number
+          success_calls: number
+          success_rate: number
+          total_calls: number
         }[]
       }
       get_or_create_tenant: {

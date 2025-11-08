@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { fetchWithRetry } from "../_shared/retry.ts";
+import { getCircuitBreaker } from "../_shared/circuit-breaker.ts";
+import { trackExecution } from "../_shared/metrics.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,6 +9,8 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  const startTime = Date.now();
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -54,22 +58,28 @@ serve(async (req) => {
       webhookUrl
     });
 
-    const response = await fetchWithRetry(requestUrl, {
-      method: 'POST',
-      headers: {
-        'X-Api-Key': wahaApiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: sessionName,
-        config: {
-          webhooks: [{
-            url: webhookUrl,
-            events: ['message', 'session.status']
-          }]
-        }
-      })
-    }, 3);
+    const circuitBreaker = getCircuitBreaker('waha-api');
+    
+    const response = await circuitBreaker.execute(() => 
+      trackExecution('waha-session-create', () =>
+        fetchWithRetry(requestUrl, {
+          method: 'POST',
+          headers: {
+            'X-Api-Key': wahaApiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: sessionName,
+            config: {
+              webhooks: [{
+                url: webhookUrl,
+                events: ['message', 'session.status']
+              }]
+            }
+          })
+        }, 3)
+      )
+    );
 
     console.log('WAHA API Response:', {
       status: response.status,
