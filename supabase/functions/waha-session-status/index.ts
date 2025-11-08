@@ -30,7 +30,13 @@ serve(async (req) => {
       );
     }
 
-    const response = await fetch(`${wahaApiUrl}/api/sessions/${sessionName}`, {
+    // Normaliza a URL do WAHA - adiciona https:// se não tiver protocolo
+    let normalizedUrl = wahaApiUrl;
+    if (!wahaApiUrl.startsWith('http://') && !wahaApiUrl.startsWith('https://')) {
+      normalizedUrl = `https://${wahaApiUrl}`;
+    }
+
+    const response = await fetch(`${normalizedUrl}/api/sessions/${sessionName}`, {
       headers: {
         'X-Api-Key': wahaApiKey
       }
