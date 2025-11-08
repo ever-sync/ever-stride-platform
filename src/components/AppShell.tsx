@@ -2,9 +2,11 @@ import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsSuperAdmin } from "@/hooks/useIsSuperAdmin";
+import { useNotifications } from "@/hooks/useNotifications";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TenantSelector } from "@/components/TenantSelector";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +47,7 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const { userSession, signOut } = useAuth();
   const { isSuperAdmin } = useIsSuperAdmin();
+  const { hasNewMessage } = useNotifications({ enableSound: true, enableToast: true });
   const location = useLocation();
   const [isDark, setIsDark] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -54,6 +57,7 @@ export function AppShell({ children }: AppShellProps) {
     { name: "Agentes", href: "/agents", icon: Bot },
     { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
     { name: "Chats", href: "/chats", icon: MessageSquare },
+    { name: "Analytics Chats", href: "/chat-analytics", icon: BarChart },
     { name: "WhatsApp", href: "/whatsapp-connection", icon: Smartphone },
     { name: "Dashboard WhatsApp", href: "/whatsapp-dashboard", icon: TrendingUp },
     { name: "Teste Chat IA", href: "/test-agent-chat", icon: Zap },
@@ -76,6 +80,7 @@ export function AppShell({ children }: AppShellProps) {
         { name: "Agentes", href: "/agents", icon: Bot },
         { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
         { name: "Chats", href: "/chats", icon: MessageSquare },
+        { name: "Analytics Chats", href: "/chat-analytics", icon: BarChart },
         { name: "WhatsApp", href: "/whatsapp-connection", icon: Smartphone },
         { name: "Dashboard WhatsApp", href: "/whatsapp-dashboard", icon: TrendingUp },
         { name: "Teste Chat IA", href: "/test-agent-chat", icon: Zap },
@@ -134,17 +139,21 @@ export function AppShell({ children }: AppShellProps) {
           <nav className="flex-1 space-y-1 p-4">
             {navigation.map((item) => {
               const isActive = location.pathname.startsWith(item.href);
+              const isChatsPage = item.href === "/chats";
               return (
                 <Link key={item.href} to={item.href}>
                   <Button
                     variant={isActive ? "secondary" : "ghost"}
                     className={cn(
-                      "w-full justify-start transition-smooth",
+                      "w-full justify-start transition-smooth relative",
                       isActive && "bg-primary/10 text-primary hover:bg-primary/20"
                     )}
                   >
                     <item.icon className="mr-3 h-5 w-5" />
                     {item.name}
+                    {isChatsPage && hasNewMessage && (
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-destructive animate-pulse" />
+                    )}
                   </Button>
                 </Link>
               );
@@ -175,6 +184,11 @@ export function AppShell({ children }: AppShellProps) {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
+            {hasNewMessage && (
+              <Badge variant="destructive" className="animate-pulse">
+                Nova mensagem
+              </Badge>
+            )}
             <Button
               variant="ghost"
               size="icon"

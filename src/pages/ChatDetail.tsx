@@ -31,7 +31,10 @@ export default function ChatDetail() {
     try {
       const { data, error } = await supabase
         .from("chats")
-        .select("*")
+        .select(`
+          *,
+          waha_sessions(id, session_name)
+        `)
         .eq("id", parseInt(chatId))
         .eq("tenant_id", userSession.tenant.id)
         .single();

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, MessageSquare, Filter, X } from "lucide-react";
+import { TagManager } from "@/components/chats/TagManager";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Chat } from "@/types/database";
@@ -18,6 +19,13 @@ interface ExtendedChat extends Chat {
   end_users?: {
     nome: string;
   };
+  chat_tags_mapping?: Array<{
+    chat_tags: {
+      id: string;
+      name: string;
+      color: string;
+    };
+  }>;
 }
 
 interface WahaSession {
@@ -41,6 +49,8 @@ export default function Chats() {
   const [agentFilter, setAgentFilter] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
+  const [tagFilter, setTagFilter] = useState<string>("all");
+  const [availableTags, setAvailableTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -49,6 +59,7 @@ export default function Chats() {
       loadChats();
       loadSessions();
       loadAgents();
+      loadTags();
     }
   }, [userSession]);
 
@@ -61,7 +72,10 @@ export default function Chats() {
         .select(`
           *,
           waha_sessions(session_name),
-          end_users!chats_end_user_id_fkey(nome)
+          end_users!chats_end_user_id_fkey(nome),
+          chat_tags_mapping(
+            chat_tags(id, name, color)
+          )
         `)
         .eq("tenant_id", userSession.tenant.id)
         .order("created_at", { ascending: false })
@@ -110,10 +124,28 @@ export default function Chats() {
     }
   };
 
+  const loadTags = async () => {
+    if (!userSession?.tenant?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("chat_tags")
+        .select("id, name, color")
+        .eq("tenant_id", userSession.tenant.id)
+        .order("name");
+
+      if (error) throw error;
+      setAvailableTags(data || []);
+    } catch (error) {
+      console.error("Error loading tags:", error);
+    }
+  };
+
   const clearFilters = () => {
     setSearch("");
     setSessionFilter("all");
     setAgentFilter("all");
+    setTagFilter("all");
     setDateFrom("");
     setDateTo("");
   };
@@ -126,6 +158,10 @@ export default function Chats() {
     
     // Filtro por sessão
     const matchesSession = sessionFilter === "all" || chat.session_id === sessionFilter;
+    
+    // Filtro por tag
+    const matchesTag = tagFilter === "all" || 
+      chat.chat_tags_mapping?.some(mapping => mapping.chat_tags.id === tagFilter);
     
     // Filtro por data
     let matchesDate = true;
@@ -143,14 +179,19 @@ export default function Chats() {
       }
     }
 
-    return matchesSearch && matchesSession && matchesDate;
+    return matchesSearch && matchesSession && matchesTag && matchesDate;
   });
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Chats</h1>
-        <p className="text-muted-foreground mt-1">Gerencie suas conversas</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Chats</h1>
+            <p className="text-muted-foreground mt-1">Gerencie suas conversas</p>
+          </div>
+          <TagManager />
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -175,7 +216,7 @@ export default function Chats() {
 
         {showFilters && (
           <Card className="p-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               <div>
                 <label className="text-sm font-medium mb-2 block">Sessão WhatsApp</label>
                 <select
@@ -208,6 +249,22 @@ export default function Chats() {
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
                 />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Tag</label>
+                <select
+                  value={tagFilter}
+                  onChange={(e) => setTagFilter(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                >
+                  <option value="all">Todas as tags</option>
+                  {availableTags.map((tag) => (
+                    <option key={tag.id} value={tag.id}>
+                      {tag.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex items-end">
@@ -257,6 +314,15 @@ export default function Chats() {
                           {chat.waha_sessions.session_name}
                         </Badge>
                       )}
+                      {chat.chat_tags_mapping?.map((mapping: any) => (
+                        <Badge
+                          key={mapping.chat_tags.id}
+                          style={{ backgroundColor: mapping.chat_tags.color, color: "#fff" }}
+                          className="text-xs"
+                        >
+                          {mapping.chat_tags.name}
+                        </Badge>
+                      ))}
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
                       Criado em{" "}

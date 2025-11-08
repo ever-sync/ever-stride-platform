@@ -27,6 +27,7 @@ import Planos from "./pages/Planos";
 import TestAgentChat from "./pages/TestAgentChat";
 import WhatsAppTest from "./pages/WhatsAppTest";
 import WhatsAppDashboard from "./pages/WhatsAppDashboard";
+import ChatAnalytics from "./pages/ChatAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -218,6 +219,16 @@ const App = () => (
                 <AuthGuard>
                   <AppShell>
                     <WhatsAppDashboard />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/chat-analytics"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <ChatAnalytics />
                   </AppShell>
                 </AuthGuard>
               }

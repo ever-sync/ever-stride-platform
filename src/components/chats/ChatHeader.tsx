@@ -1,6 +1,7 @@
 import { ArrowLeft, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { TagSelector } from "./TagSelector";
 import { useNavigate } from "react-router-dom";
 
 interface ChatHeaderProps {
@@ -35,9 +36,13 @@ export function ChatHeader({ phone, chatId, messageCount }: ChatHeaderProps) {
             </p>
           </div>
           
-          <Badge variant="secondary">
-            {messageCount} {messageCount === 1 ? 'mensagem' : 'mensagens'}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">
+              {messageCount} {messageCount === 1 ? 'mensagem' : 'mensagens'}
+            </Badge>
+            
+            <TagSelector chatId={chatId} />
+          </div>
         </div>
       </div>
     </div>
