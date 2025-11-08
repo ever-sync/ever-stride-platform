@@ -59,12 +59,6 @@ export default function Agents() {
     tempo_atendimento: 30,
     saudacao_inicial: "Olá! Como posso ajudar?",
     script_atendimento: "",
-    codigo_transferencia: "",
-    codigo_envio_grupo: "",
-    codigo_pausar_ia: "",
-    codigo_ativar_ia: "",
-    codigo_resetar_bd: "",
-    codigo_avaliacao: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,12 +88,6 @@ export default function Agents() {
       tempo_atendimento: 30,
       saudacao_inicial: "Olá! Como posso ajudar?",
       script_atendimento: "",
-      codigo_transferencia: "",
-      codigo_envio_grupo: "",
-      codigo_pausar_ia: "",
-      codigo_ativar_ia: "",
-      codigo_resetar_bd: "",
-      codigo_avaliacao: "",
     });
     setEditingAgent(null);
   };
@@ -114,12 +102,6 @@ export default function Agents() {
       tempo_atendimento: agent.tempo_atendimento || 30,
       saudacao_inicial: agent.saudacao_inicial || "",
       script_atendimento: agent.script_atendimento,
-      codigo_transferencia: agent.codigo_transferencia || "",
-      codigo_envio_grupo: agent.codigo_envio_grupo || "",
-      codigo_pausar_ia: agent.codigo_pausar_ia || "",
-      codigo_ativar_ia: agent.codigo_ativar_ia || "",
-      codigo_resetar_bd: agent.codigo_resetar_bd || "",
-      codigo_avaliacao: agent.codigo_avaliacao || "",
     });
     setDialogOpen(true);
   };
@@ -250,75 +232,6 @@ export default function Agents() {
                     setFormData({ ...formData, script_atendimento: e.target.value })
                   }
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="codigo_transferencia">Código de Transferência</Label>
-                  <Input
-                    id="codigo_transferencia"
-                    value={formData.codigo_transferencia}
-                    onChange={(e) =>
-                      setFormData({ ...formData, codigo_transferencia: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="codigo_envio_grupo">Código de Envio para Grupo</Label>
-                  <Input
-                    id="codigo_envio_grupo"
-                    value={formData.codigo_envio_grupo}
-                    onChange={(e) =>
-                      setFormData({ ...formData, codigo_envio_grupo: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="codigo_pausar_ia">Código Pausar IA</Label>
-                  <Input
-                    id="codigo_pausar_ia"
-                    value={formData.codigo_pausar_ia}
-                    onChange={(e) =>
-                      setFormData({ ...formData, codigo_pausar_ia: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="codigo_ativar_ia">Código Ativar IA</Label>
-                  <Input
-                    id="codigo_ativar_ia"
-                    value={formData.codigo_ativar_ia}
-                    onChange={(e) =>
-                      setFormData({ ...formData, codigo_ativar_ia: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="codigo_resetar_bd">Código de Resetar Banco de Dados</Label>
-                  <Input
-                    id="codigo_resetar_bd"
-                    value={formData.codigo_resetar_bd}
-                    onChange={(e) =>
-                      setFormData({ ...formData, codigo_resetar_bd: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="codigo_avaliacao">Código de Avaliação</Label>
-                  <Input
-                    id="codigo_avaliacao"
-                    value={formData.codigo_avaliacao}
-                    onChange={(e) =>
-                      setFormData({ ...formData, codigo_avaliacao: e.target.value })
-                    }
-                  />
-                </div>
               </div>
 
               <div className="flex justify-end gap-2">
