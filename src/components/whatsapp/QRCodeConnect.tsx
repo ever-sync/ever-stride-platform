@@ -3,8 +3,9 @@ import { useWahaSession } from '@/hooks/useWahaSession'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Smartphone, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
+import { Loader2, Smartphone, CheckCircle, XCircle, RefreshCw, Clock } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Progress } from '@/components/ui/progress'
 
 interface QRCodeConnectProps {
   clientId: string
@@ -14,16 +15,54 @@ interface QRCodeConnectProps {
 export function QRCodeConnect({ clientId, agentId }: QRCodeConnectProps) {
   const { session, loading, connecting, criarSession, atualizarQR, desconectar } = useWahaSession(clientId)
   const [autoRefresh, setAutoRefresh] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
 
-  // Auto-refresh QR Code a cada 30s se status = qr_code
+  // Auto-refresh QR Code every 30s when status = qr_code
   useEffect(() => {
     if (session?.status === 'qr_code' && autoRefresh) {
-      const interval = setInterval(() => {
-        atualizarQR()
+      const interval = setInterval(async () => {
+        setRefreshing(true)
+        await atualizarQR()
+        setRefreshing(false)
       }, 30000)
       return () => clearInterval(interval)
     }
-  }, [session?.status, autoRefresh])
+  }, [session?.status, autoRefresh, atualizarQR])
+
+  // Countdown timer for QR expiration
+  useEffect(() => {
+    if (session?.status === 'qr_code' && session?.qr_expires_at) {
+      const updateTimer = () => {
+        const expiresAt = new Date(session.qr_expires_at).getTime()
+        const now = Date.now()
+        const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000))
+        setTimeRemaining(remaining)
+        
+        if (remaining === 0 && autoRefresh) {
+          atualizarQR()
+        }
+      }
+      
+      updateTimer()
+      const interval = setInterval(updateTimer, 1000)
+      return () => clearInterval(interval)
+    } else {
+      setTimeRemaining(null)
+    }
+  }, [session?.status, session?.qr_expires_at, autoRefresh, atualizarQR])
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const handleRefreshQR = async () => {
+    setRefreshing(true)
+    await atualizarQR()
+    setRefreshing(false)
+  }
 
   if (loading) {
     return (
@@ -103,13 +142,40 @@ export function QRCodeConnect({ clientId, agentId }: QRCodeConnectProps) {
             <div className="text-center py-4">
               <h3 className="text-lg font-semibold mb-4">Escaneie o QR Code</h3>
               
-              {session.qr_code ? (
-                <div className="bg-background p-4 rounded-lg inline-block border-2 border-border">
-                  <img
-                    src={session.qr_code}
-                    alt="QR Code WhatsApp"
-                    className="w-64 h-64 mx-auto"
-                  />
+              {refreshing ? (
+                <div className="bg-muted p-12 rounded-lg">
+                  <Loader2 className="h-12 w-12 mx-auto animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground mt-4">Atualizando QR Code...</p>
+                </div>
+              ) : session.qr_code ? (
+                <div className="space-y-4">
+                  <div className="bg-background p-4 rounded-lg inline-block border-2 border-border">
+                    <img
+                      src={session.qr_code}
+                      alt="QR Code WhatsApp"
+                      className="w-64 h-64 mx-auto"
+                    />
+                  </div>
+                  
+                  {timeRemaining !== null && (
+                    <div className="max-w-md mx-auto space-y-2">
+                      <div className="flex items-center justify-center gap-2 text-sm">
+                        <Clock className="h-4 w-4" />
+                        <span className="font-medium">
+                          Expira em: {formatTime(timeRemaining)}
+                        </span>
+                      </div>
+                      <Progress 
+                        value={(timeRemaining / 60) * 100} 
+                        className="h-2"
+                      />
+                      {timeRemaining < 10 && (
+                        <p className="text-xs text-destructive">
+                          QR Code expirando em breve...
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="bg-muted p-12 rounded-lg">
@@ -136,10 +202,11 @@ export function QRCodeConnect({ clientId, agentId }: QRCodeConnectProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={atualizarQR}
+                  onClick={handleRefreshQR}
+                  disabled={refreshing}
                 >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Atualizar QR
+                  <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                  {refreshing ? 'Atualizando...' : 'Atualizar QR'}
                 </Button>
                 <Button
                   variant="outline"

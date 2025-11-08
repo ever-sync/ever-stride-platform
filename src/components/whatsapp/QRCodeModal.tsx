@@ -1,7 +1,9 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { WahaSession } from '@/types/waha';
 import QRCode from 'react-qr-code';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, Loader2, Clock } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Progress } from '@/components/ui/progress';
 
 interface QRCodeModalProps {
   session: WahaSession;
@@ -12,6 +14,30 @@ interface QRCodeModalProps {
 export function QRCodeModal({ session, open, onClose }: QRCodeModalProps) {
   const isConnected = session.status === 'connected' || session.status === 'WORKING';
   const needsQR = session.status === 'qr_code' || session.status === 'SCAN_QR_CODE';
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (needsQR && session.qr_expires_at) {
+      const updateTimer = () => {
+        const expiresAt = new Date(session.qr_expires_at).getTime();
+        const now = Date.now();
+        const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
+        setTimeRemaining(remaining);
+      };
+      
+      updateTimer();
+      const interval = setInterval(updateTimer, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setTimeRemaining(null);
+    }
+  }, [needsQR, session.qr_expires_at]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -42,8 +68,30 @@ export function QRCodeModal({ session, open, onClose }: QRCodeModalProps) {
               )}
             </div>
           ) : needsQR && session.qr_code ? (
-            <div className="bg-white p-4 rounded-lg">
-              <QRCode value={session.qr_code} size={256} />
+            <div className="space-y-4">
+              <div className="bg-white p-4 rounded-lg">
+                <QRCode value={session.qr_code} size={256} />
+              </div>
+              
+              {timeRemaining !== null && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-center gap-2 text-sm">
+                    <Clock className="h-4 w-4" />
+                    <span className="font-medium">
+                      Expira em: {formatTime(timeRemaining)}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={(timeRemaining / 60) * 100} 
+                    className="h-2"
+                  />
+                  {timeRemaining < 10 && (
+                    <p className="text-xs text-center text-destructive">
+                      QR Code expirando em breve...
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center space-y-4">
