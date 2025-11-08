@@ -1225,6 +1225,38 @@ export type Database = {
       }
     }
     Views: {
+      vw_custos_cliente_mensal: {
+        Row: {
+          agentes_usados: number | null
+          chamadas_com_erro: number | null
+          client_id: string | null
+          cliente_nome: string | null
+          custo_total_brl: number | null
+          custo_total_usd: number | null
+          latencia_media_ms: number | null
+          media_tokens_chamada: number | null
+          mes: string | null
+          tenant_id: number | null
+          tokens_total: number | null
+          total_chamadas: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "token_usage_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_clients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vw_custos_periodo_base: {
         Row: {
           conversas: number | null
