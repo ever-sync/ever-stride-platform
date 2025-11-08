@@ -287,15 +287,25 @@ return {
     };
 
     // Create workflow in N8N
-    // Se tiver nodes customizados (template Carros), usar eles
-    const workflowPayload = workflowJson.nodes && workflowJson.nodes.length > 0
-      ? {
-          name: params.nome,
-          nodes: workflowJson.nodes,
-          connections: workflowJson.connections || {},
-          settings: workflowJson.settings || { executionOrder: 'v1' }
-        }
-      : workflowTemplate;
+    // Se tiver nodes customizados (template Carros), usar eles diretamente
+    let workflowPayload;
+    
+    if (workflowJson.nodes && workflowJson.nodes.length > 0) {
+      // Template tem nodes customizados (ex: Carros) - usar o JSON completo
+      console.log('Using customized template with', workflowJson.nodes.length, 'nodes');
+      workflowPayload = {
+        name: params.nome,
+        nodes: workflowJson.nodes,
+        connections: workflowJson.connections || {},
+        settings: workflowJson.settings || { executionOrder: 'v1' }
+      };
+    } else {
+      // Template genérico - usar estrutura padrão
+      console.log('Using generic template structure');
+      workflowPayload = workflowTemplate;
+    }
+    
+    console.log('Creating workflow with payload:', JSON.stringify(workflowPayload).substring(0, 200));
     
     const response = await fetch(`${N8N_API_URL}/api/v1/workflows`, {
       method: 'POST',

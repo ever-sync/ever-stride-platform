@@ -15,6 +15,7 @@ import {
   Filter,
   TrendingUp,
   ExternalLink,
+  Upload
 } from "lucide-react";
 import { useN8NWorkflows } from "@/hooks/useN8NWorkflows";
 import { WorkflowCard } from "@/components/n8n/WorkflowCard";
@@ -27,13 +28,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { loadCarrosTemplateToDatabase } from "@/lib/load-template-helper";
+import { toast } from "sonner";
 
 export default function Integrations() {
-  const { workflows, templates, loading, operationLoading } = useN8NWorkflows();
+  const { workflows, templates, loading, operationLoading, reload } = useN8NWorkflows();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [templateFilter, setTemplateFilter] = useState<string>("all");
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
+
+  const handleLoadCarrosTemplate = async () => {
+    try {
+      setLoadingTemplate(true);
+      await loadCarrosTemplateToDatabase();
+      toast.success("Template de Carros carregado com sucesso!");
+      reload(); // Reload workflows and templates
+    } catch (error) {
+      console.error("Error loading template:", error);
+      toast.error("Erro ao carregar template");
+    } finally {
+      setLoadingTemplate(false);
+    }
+  };
 
   const filteredWorkflows = workflows.filter(workflow => {
     const matchesSearch = workflow.workflow_name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -60,6 +78,15 @@ export default function Integrations() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button 
+            variant="secondary" 
+            size="sm"
+            onClick={handleLoadCarrosTemplate}
+            disabled={loadingTemplate}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            {loadingTemplate ? "Carregando..." : "Carregar Template Carros"}
+          </Button>
           <Button asChild variant="outline" size="sm">
             <Link to="/n8n-monitoring">
               <Activity className="mr-2 h-4 w-4" />
