@@ -6,13 +6,14 @@ import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Activity, Zap, AlertCircle, CheckCircle, Clock, RefreshCw, Search, Power, QrCode } from 'lucide-react'
+import { Activity, Zap, AlertCircle, CheckCircle, Clock, RefreshCw, Search, Power, QrCode, MessageSquare, X } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { NewSessionDialog } from '@/components/whatsapp/NewSessionDialog'
 import { WAHAHealthIndicator } from '@/components/whatsapp/WAHAHealthIndicator'
 import { QRCodeModal } from '@/components/whatsapp/QRCodeModal'
 import { SessionStatistics } from '@/components/whatsapp/SessionStatistics'
 import { SessionActivityLog } from '@/components/whatsapp/SessionActivityLog'
+import { SessionChats } from '@/components/whatsapp/SessionChats'
 import QRCode from 'react-qr-code'
 
 type WahaSession = {
@@ -68,6 +69,7 @@ export default function WhatsAppDashboard() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedSession, setSelectedSession] = useState<WahaSession | null>(null)
   const [showQR, setShowQR] = useState(false)
+  const [showChats, setShowChats] = useState(false)
 
   // Carregar dados iniciais
   useEffect(() => {
@@ -425,6 +427,19 @@ export default function WhatsAppDashboard() {
                       </p>
                     </div>
                   </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-3"
+                    onClick={() => {
+                      setSelectedSession(session)
+                      setShowChats(true)
+                    }}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Ver Conversas
+                  </Button>
                 </div>
               ))
             )}
@@ -433,14 +448,43 @@ export default function WhatsAppDashboard() {
       </Card>
 
       {selectedSession && (
-        <QRCodeModal
-          session={selectedSession}
-          open={showQR}
-          onClose={() => {
-            setShowQR(false)
-            setSelectedSession(null)
-          }}
-        />
+        <>
+          <QRCodeModal
+            session={selectedSession}
+            open={showQR}
+            onClose={() => {
+              setShowQR(false)
+              setSelectedSession(null)
+            }}
+          />
+          
+          {/* Dialog for Session Chats */}
+          {showChats && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+              <div className="w-full max-w-2xl max-h-[80vh] overflow-auto bg-card rounded-lg shadow-lg">
+                <div className="sticky top-0 bg-card border-b p-4 flex items-center justify-between z-10">
+                  <h2 className="text-xl font-semibold">Conversas da Sessão</h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setShowChats(false)
+                      setSelectedSession(null)
+                    }}
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+                <div className="p-6">
+                  <SessionChats
+                    sessionId={selectedSession.id}
+                    sessionName={selectedSession.session_name}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Circuit Breakers */}

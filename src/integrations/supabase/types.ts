@@ -145,6 +145,7 @@ export type Database = {
           end_user_id: number | null
           id: number
           phone: string | null
+          session_id: string | null
           tenant_id: number
           updated_at: string | null
         }
@@ -153,6 +154,7 @@ export type Database = {
           end_user_id?: number | null
           id?: number
           phone?: string | null
+          session_id?: string | null
           tenant_id: number
           updated_at?: string | null
         }
@@ -161,6 +163,7 @@ export type Database = {
           end_user_id?: number | null
           id?: number
           phone?: string | null
+          session_id?: string | null
           tenant_id?: number
           updated_at?: string | null
         }
@@ -170,6 +173,13 @@ export type Database = {
             columns: ["end_user_id"]
             isOneToOne: false
             referencedRelation: "end_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chats_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "waha_sessions"
             referencedColumns: ["id"]
           },
           {

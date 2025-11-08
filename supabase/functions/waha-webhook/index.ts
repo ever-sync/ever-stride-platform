@@ -118,12 +118,13 @@ serve(async (req) => {
         endUserId = newEndUser?.id;
       }
 
-      // Criar ou buscar chat
+      // Criar ou buscar chat (vinculado à sessão)
       let { data: chat } = await supabase
         .from('chats')
         .select('id')
         .eq('tenant_id', session.tenant_id)
         .eq('phone', payload.payload.from)
+        .eq('session_id', session.id)
         .maybeSingle();
 
       if (!chat) {
@@ -133,6 +134,7 @@ serve(async (req) => {
             tenant_id: session.tenant_id,
             end_user_id: endUserId,
             phone: payload.payload.from,
+            session_id: session.id,
             updated_at: new Date().toISOString()
           })
           .select('id')
