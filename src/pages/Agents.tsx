@@ -1,351 +1,252 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useAgents } from "@/hooks/useAgents";
-import { useWhatsAppClients } from "@/hooks/useWhatsAppClients";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Bot, Activity, MessageSquare } from "lucide-react";
-import { Agent } from "@/types/database";
+import { useState } from 'react'
+import { AppShell } from '@/components/AppShell'
+import { useAgentsV2 } from '@/hooks/useAgentsV2'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { 
+  Plus, 
+  Search, 
+  Activity, 
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  TrendingUp
+} from 'lucide-react'
+import { Link } from 'react-router-dom'
 
-export default function Agents() {
-  const { userSession } = useAuth();
-  const { agentes, loading, stats, criarAgente, atualizarAgente, deletarAgente, toggleStatus } =
-    useAgents();
-  const { clientes } = useWhatsAppClients();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
-  const [formData, setFormData] = useState({
-    client_id: "",
-    workflow_id: "",
-    nome_agente: "Assistente",
-    limite_mensagens_mes: 1000,
-    tempo_atendimento: 30,
-    saudacao_inicial: "Olá! Como posso ajudar?",
-    script_atendimento: "",
-  });
+export default function AgentsPage() {
+  const { agents, loading } = useAgentsV2()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (editingAgent) {
-        await atualizarAgente(editingAgent.id, formData);
-      } else {
-        await criarAgente({
-          ...formData,
-          tenant_id: userSession?.tenant?.id!,
-        });
-      }
-      setDialogOpen(false);
-      resetForm();
-    } catch (error) {
-      console.error("Error saving agent:", error);
-    }
-  };
+  const filteredAgents = agents?.filter(agent => {
+    const matchesSearch = agent.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === 'all' || agent.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
 
-  const resetForm = () => {
-    setFormData({
-      client_id: "",
-      workflow_id: "",
-      nome_agente: "Assistente",
-      limite_mensagens_mes: 1000,
-      tempo_atendimento: 30,
-      saudacao_inicial: "Olá! Como posso ajudar?",
-      script_atendimento: "",
-    });
-    setEditingAgent(null);
-  };
-
-  const openEditDialog = (agent: Agent) => {
-    setEditingAgent(agent);
-    setFormData({
-      client_id: agent.client_id,
-      workflow_id: agent.workflow_id || "",
-      nome_agente: agent.nome_agente,
-      limite_mensagens_mes: agent.limite_mensagens_mes || 1000,
-      tempo_atendimento: agent.tempo_atendimento || 30,
-      saudacao_inicial: agent.saudacao_inicial || "",
-      script_atendimento: agent.script_atendimento,
-    });
-    setDialogOpen(true);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+  const stats = {
+    total: agents?.length || 0,
+    active: agents?.filter(a => a.status === 'active').length || 0,
+    paused: agents?.filter(a => a.status === 'paused').length || 0,
+    error: agents?.filter(a => a.status === 'error').length || 0
   }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Agentes</h1>
-          <p className="text-muted-foreground mt-1">
-            Configure agentes de IA para seus clientes
-          </p>
+          <p className="text-muted-foreground">Gerencie seus agentes de IA</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Agente
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingAgent ? "Editar Agente" : "Novo Agente"}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="client_id">Cliente *</Label>
-                  <Select
-                    value={formData.client_id}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, client_id: value })
-                    }
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clientes.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.nome_empresa}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="workflow_id">ID do Workflow</Label>
-                  <Input
-                    id="workflow_id"
-                    value={formData.workflow_id}
-                    onChange={(e) =>
-                      setFormData({ ...formData, workflow_id: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nome_agente">Nome do Agente *</Label>
-                  <Input
-                    id="nome_agente"
-                    required
-                    value={formData.nome_agente}
-                    onChange={(e) =>
-                      setFormData({ ...formData, nome_agente: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="limite_mensagens_mes">Limite Mensal de Mensagens</Label>
-                  <Input
-                    id="limite_mensagens_mes"
-                    type="number"
-                    value={formData.limite_mensagens_mes}
-                    onChange={(e) =>
-                      setFormData({ ...formData, limite_mensagens_mes: parseInt(e.target.value) })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="tempo_atendimento">Tempo de Atendimento (minutos)</Label>
-                  <Input
-                    id="tempo_atendimento"
-                    type="number"
-                    value={formData.tempo_atendimento}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tempo_atendimento: parseInt(e.target.value) })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="saudacao_inicial">Saudação Inicial</Label>
-                <Input
-                  id="saudacao_inicial"
-                  value={formData.saudacao_inicial}
-                  onChange={(e) =>
-                    setFormData({ ...formData, saudacao_inicial: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="script_atendimento">Script de Atendimento *</Label>
-                <Textarea
-                  id="script_atendimento"
-                  required
-                  rows={4}
-                  value={formData.script_atendimento}
-                  onChange={(e) =>
-                    setFormData({ ...formData, script_atendimento: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit">Salvar</Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => window.location.href = '/agents/new'}>
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Agente
+        </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Agentes</CardTitle>
-            <Bot className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
+              </div>
+              <Activity className="h-8 w-8 text-muted-foreground" />
+            </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Agentes Ativos</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.ativos}</div>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Ativos</p>
+                <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-500" />
+            </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Mensagens (mês)</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalMensagens}</div>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Pausados</p>
+                <p className="text-2xl font-bold text-yellow-600">{stats.paused}</p>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Com Erro</p>
+                <p className="text-2xl font-bold text-red-600">{stats.error}</p>
+              </div>
+              <XCircle className="h-8 w-8 text-red-500" />
+            </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Filtros */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Agentes</CardTitle>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Lista de Agentes</CardTitle>
+              <CardDescription>
+                {filteredAgents?.length || 0} agente(s) encontrado(s)
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Workflow ID</TableHead>
-                <TableHead>Mensagens (mês)</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {agentes.map((agent: any) => (
-                <TableRow key={agent.id}>
-                  <TableCell className="font-medium">{agent.nome_agente}</TableCell>
-                  <TableCell>{agent.whatsapp_clients?.nome_empresa || "-"}</TableCell>
-                  <TableCell className="font-mono text-xs">{agent.workflow_id || "-"}</TableCell>
-                  <TableCell>
-                    {agent.mensagens_usadas_mes || 0} / {agent.limite_mensagens_mes}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={agent.ativo ? "default" : "secondary"}>
-                      {agent.ativo ? "Ativo" : "Inativo"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEditDialog(agent)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Tem certeza que deseja excluir o agente {agent.nome_agente}?
-                              Esta ação não pode ser desfeita.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deletarAgente(agent.id)}
-                            >
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="flex gap-4 mb-6">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar agentes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant={statusFilter === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('all')}
+              >
+                Todos
+              </Button>
+              <Button
+                variant={statusFilter === 'active' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('active')}
+              >
+                Ativos
+              </Button>
+              <Button
+                variant={statusFilter === 'paused' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('paused')}
+              >
+                Pausados
+              </Button>
+              <Button
+                variant={statusFilter === 'error' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setStatusFilter('error')}
+              >
+                Erros
+              </Button>
+            </div>
+          </div>
+
+          {/* Lista de Agentes */}
+          <div className="space-y-3">
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              </div>
+            ) : filteredAgents && filteredAgents.length > 0 ? (
+              filteredAgents.map((agent) => (
+                <Link
+                  key={agent.id}
+                  to={`/agents/${agent.id}`}
+                  className="block"
+                >
+                  <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-lg font-semibold">{agent.nome}</h3>
+                            <Badge variant={
+                              agent.status === 'active' ? 'success' :
+                              agent.status === 'paused' ? 'warning' :
+                              'destructive'
+                            }>
+                              {agent.status}
+                            </Badge>
+                            {agent.n8n_workflow_id && (
+                              <Badge variant="outline">
+                                N8N Configurado
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {agent.descricao || 'Sem descrição'}
+                          </p>
+
+                          <div className="grid grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <p className="text-muted-foreground">Mensagens (mês)</p>
+                              <p className="font-semibold">
+                                {agent.msgs_usadas_mes || 0} / {agent.limite_msgs_mes}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Tokens (mês)</p>
+                              <p className="font-semibold">
+                                {((agent.tokens_usados_mes || 0) / 1000).toFixed(1)}k
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Custo (mês)</p>
+                              <p className="font-semibold">
+                                R$ {(agent.custo_acumulado_mes || 0).toFixed(2)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Taxa Sucesso</p>
+                              <p className="font-semibold text-green-600">
+                                {(agent.taxa_sucesso || 100).toFixed(1)}%
+                              </p>
+                            </div>
+                          </div>
+
+                          {agent.ultimo_erro && (
+                            <div className="mt-3 p-2 bg-destructive/10 rounded text-sm text-destructive border border-destructive/20">
+                              <p className="font-medium">Último erro:</p>
+                              <p className="text-xs">{agent.ultimo_erro}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="ml-4">
+                          <TrendingUp className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Nenhum agente encontrado</p>
+                <Button className="mt-4" onClick={() => window.location.href = '/agents/new'}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Criar Primeiro Agente
+                </Button>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

@@ -11,6 +11,8 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import Agents from "./pages/Agents";
+import AgentDetail from "./pages/AgentDetail";
+import SystemDashboard from "./pages/SystemDashboard";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import Chats from "./pages/Chats";
 import ChatDetail from "./pages/ChatDetail";
@@ -90,6 +92,26 @@ const App = () => (
               element={
                 <AuthGuard>
                   <AgentMonitoring />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/agents/:agentId"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <AgentDetail />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/system-dashboard"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <SystemDashboard />
+                  </AppShell>
                 </AuthGuard>
               }
             />
