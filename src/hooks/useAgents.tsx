@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { n8nClient } from '@/lib/n8n-client';
 import { Agent } from '@/types/database';
 
 export interface AgentStats {
@@ -24,7 +25,7 @@ export function useAgents() {
     try {
       const { data, error } = await supabase
         .from('agents')
-        .select('*, whatsapp_clients(nome_empresa)')
+        .select('*, whatsapp_clients(nome_empresa), n8n_workflows(workflow_id, webhook_url, is_active)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -51,6 +52,7 @@ export function useAgents() {
 
   const criarAgente = async (dados: Partial<Agent>) => {
     try {
+      // 1. Criar agente no banco
       const { data: agente, error } = await supabase
         .from('agents')
         .insert([dados as any])
@@ -58,6 +60,46 @@ export function useAgents() {
         .single();
 
       if (error) throw error;
+
+      // 2. Criar workflow N8N (opcional)
+      if (agente.client_id && agente.nome_agente) {
+        try {
+          const workflowData = await n8nClient.createWorkflow({
+            agentId: agente.id,
+            clientId: agente.client_id,
+            nome: agente.nome_agente
+          });
+
+          // 3. Registrar workflow no banco
+          await supabase
+            .from('n8n_workflows')
+            .insert({
+              agent_id: agente.id,
+              tenant_id: agente.tenant_id,
+              workflow_id: workflowData.workflow_id,
+              workflow_name: `Agente-${agente.nome_agente}`,
+              webhook_url: workflowData.webhook_url,
+              webhook_test_url: workflowData.webhook_test_url,
+              is_active: true
+            });
+
+          // 4. Atualizar agente com workflow ID
+          await supabase
+            .from('agents')
+            .update({
+              n8n_workflow_id: workflowData.workflow_id,
+              webhook_url: workflowData.webhook_url
+            })
+            .eq('id', agente.id);
+        } catch (workflowError) {
+          console.error('Erro ao criar workflow N8N:', workflowError);
+          toast({
+            title: 'Agente criado, workflow falhou',
+            description: 'O agente foi criado mas o workflow N8N não pôde ser configurado.',
+            variant: 'destructive',
+          });
+        }
+      }
 
       await carregarAgentes();
       
@@ -106,6 +148,29 @@ export function useAgents() {
 
   const deletarAgente = async (id: string) => {
     try {
+      // Buscar workflow associado
+      const { data: agent } = await supabase
+        .from('agents')
+        .select('n8n_workflow_id')
+        .eq('id', id)
+        .single();
+
+      // Deletar workflow N8N se existir
+      if (agent?.n8n_workflow_id) {
+        try {
+          await n8nClient.deleteWorkflow(agent.n8n_workflow_id);
+          
+          // Deletar registro do workflow
+          await supabase
+            .from('n8n_workflows')
+            .delete()
+            .eq('workflow_id', agent.n8n_workflow_id);
+        } catch (workflowError) {
+          console.error('Erro ao deletar workflow:', workflowError);
+        }
+      }
+
+      // Deletar agente
       const { error } = await supabase
         .from('agents')
         .delete()
