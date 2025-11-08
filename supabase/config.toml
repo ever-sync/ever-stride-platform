@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.waha-webhook]
 verify_jwt = false
+
+[functions.ai-agent-chat]
+verify_jwt = false

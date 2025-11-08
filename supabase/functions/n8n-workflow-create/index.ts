@@ -68,13 +68,14 @@ serve(async (req) => {
           position: [650, 300],
           parameters: {
             method: 'POST',
-            url: `${APP_URL}/functions/v1/ai-chat`,
+            url: `${APP_URL}/functions/v1/ai-agent-chat`,
             sendBody: true,
             bodyParameters: {
               parameters: [
                 { name: 'agent_id', value: '={{$json.agent_id}}' },
                 { name: 'message', value: '={{$json.message}}' },
-                { name: 'from', value: '={{$json.from}}' }
+                { name: 'from', value: '={{$json.from}}' },
+                { name: 'chat_id', value: '={{$json.chat_id}}' }
               ]
             }
           }
