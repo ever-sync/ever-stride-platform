@@ -5,13 +5,25 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to normalize N8N URL
+const normalizeN8nUrl = (url: string): string => {
+  if (!url) return url;
+  // Remove trailing slashes
+  url = url.replace(/\/+$/, '');
+  // Add https:// if no protocol is present
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`;
+  }
+  return url;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const N8N_API_URL = Deno.env.get('N8N_API_URL');
+    const N8N_API_URL = normalizeN8nUrl(Deno.env.get('N8N_API_URL') || '');
     const N8N_API_KEY = Deno.env.get('N8N_API_KEY');
 
     if (!N8N_API_URL || !N8N_API_KEY) {
