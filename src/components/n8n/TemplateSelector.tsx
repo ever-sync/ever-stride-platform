@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Brain, 
   BookOpen, 
@@ -48,6 +49,14 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
   const [selectedAgentId, setSelectedAgentId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  
+  // Carros template specific fields
+  const [scriptAtendimento, setScriptAtendimento] = useState("Olá! Sou a Amanda, assistente virtual da concessionária. Como posso ajudar você hoje?");
+  const [codigoPausar, setCodigoPausar] = useState("PAUSAR_ATENDIMENTO");
+  const [codigoVendedor, setCodigoVendedor] = useState("TRANSFERIR_VENDEDOR");
+  const [codigoGrupo, setCodigoGrupo] = useState("TRANSFERIR_GRUPO");
+  const [codigoVerificarSistema, setCodigoVerificarSistema] = useState("CONSULTAR_ESTOQUE");
+  
   const { createFromTemplate, operationLoading } = useN8NWorkflows();
   const { agentes, loading: loadingAgents } = useAgents();
   const { userSession } = useAuth();
@@ -84,12 +93,24 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
     }
 
     try {
+      // Prepare customizations if it's the Carros template
+      const customizations = selectedTemplate?.name.includes('Carros') 
+        ? {
+            script_atendimento: scriptAtendimento,
+            codigo_pausar_ia: codigoPausar,
+            codigo_transferir_vendedor: codigoVendedor,
+            codigo_transferir_grupo: codigoGrupo,
+            codigo_verificar_sistema: codigoVerificarSistema
+          }
+        : undefined;
+
       await createFromTemplate(
         selectedTemplate.id,
         selectedAgentId,
         selectedAgent.client_id || selectedAgentId, // Use client_id or fallback to agent_id
         tenantId,
-        workflowName
+        workflowName,
+        customizations
       );
       onSelect();
     } catch (error) {
@@ -149,6 +170,68 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
               onChange={(e) => setWorkflowName(e.target.value)}
             />
           </div>
+
+          {/* Carros template specific fields */}
+          {selectedTemplate?.name.includes('Carros') && (
+            <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+              <h4 className="font-semibold text-sm flex items-center gap-2">
+                🚗 Configurações do Template de Carros
+              </h4>
+              
+              <div className="space-y-2">
+                <Label htmlFor="script">Script de Atendimento</Label>
+                <Textarea
+                  id="script"
+                  placeholder="Olá! Sou a Amanda, assistente virtual da concessionária..."
+                  rows={4}
+                  value={scriptAtendimento}
+                  onChange={(e) => setScriptAtendimento(e.target.value)}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="codigo-pausar">Código para Pausar IA</Label>
+                  <Input
+                    id="codigo-pausar"
+                    placeholder="PAUSAR_ATENDIMENTO"
+                    value={codigoPausar}
+                    onChange={(e) => setCodigoPausar(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="codigo-vendedor">Código Transferir Vendedor</Label>
+                  <Input
+                    id="codigo-vendedor"
+                    placeholder="TRANSFERIR_VENDEDOR"
+                    value={codigoVendedor}
+                    onChange={(e) => setCodigoVendedor(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="codigo-grupo">Código Transferir Grupo</Label>
+                  <Input
+                    id="codigo-grupo"
+                    placeholder="TRANSFERIR_GRUPO"
+                    value={codigoGrupo}
+                    onChange={(e) => setCodigoGrupo(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="codigo-verificar">Código Verificar Sistema</Label>
+                  <Input
+                    id="codigo-verificar"
+                    placeholder="CONSULTAR_ESTOQUE"
+                    value={codigoVerificarSistema}
+                    onChange={(e) => setCodigoVerificarSistema(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Integrações Necessárias</Label>
@@ -253,6 +336,25 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
                 <p className="text-sm text-muted-foreground line-clamp-2">
                   {template.description}
                 </p>
+                
+                {/* Lista de funcionalidades para template de Carros */}
+                {template.name.includes('Carros') && (
+                  <div className="mt-3 space-y-1">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                      Consulta de estoque automatizada
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                      Simulação de financiamento
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                      Transferência inteligente para vendedores
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex flex-wrap gap-1 mt-3">
                   {template.has_ai && (
                     <Badge variant="secondary" className="text-xs">IA</Badge>
@@ -262,6 +364,11 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
                   )}
                   {template.has_human_handoff && (
                     <Badge variant="secondary" className="text-xs">Humano</Badge>
+                  )}
+                  {template.difficulty_level === 'avancado' && (
+                    <Badge className="text-xs bg-gradient-to-r from-purple-500 to-pink-500">
+                      Premium
+                    </Badge>
                   )}
                 </div>
               </CardContent>

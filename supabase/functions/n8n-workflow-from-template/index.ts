@@ -33,6 +33,60 @@ const normalizeN8nUrl = (url: string): string => {
   return url;
 };
 
+// Function to customize Carros template
+const customizeCarrosTemplate = (
+  templateJson: any,
+  customizations: any
+): any => {
+  console.log('Customizing Carros template with:', customizations);
+  
+  const customized = JSON.parse(JSON.stringify(templateJson));
+  
+  // Substituir placeholders nos nós
+  customized.nodes?.forEach((node: any) => {
+    // Personalizar nó do AI Agent
+    if (node.type === '@n8n/n8n-nodes-langchain.agent' && node.parameters?.options?.systemMessage) {
+      let systemMessage = node.parameters.options.systemMessage;
+      
+      // Substituir script de atendimento
+      if (customizations.script_atendimento) {
+        systemMessage = systemMessage.replace(
+          /\{\{ \$\('Config-IA'\)\.item\.json\.Script \}\}/g,
+          customizations.script_atendimento
+        );
+      }
+      
+      // Substituir código transferir grupo
+      if (customizations.codigo_transferir_grupo) {
+        systemMessage = systemMessage.replace(
+          /\{\{ \$\('Config-IA'\)\.item\.json\['Transferir Grupo'\] \}\}/g,
+          customizations.codigo_transferir_grupo
+        );
+      }
+      
+      // Substituir código transferir vendedor
+      if (customizations.codigo_transferir_vendedor) {
+        systemMessage = systemMessage.replace(
+          /\{\{ \$\('Config-IA'\)\.item\.json\['Transferir Vendedor'\] \}\}/g,
+          customizations.codigo_transferir_vendedor
+        );
+      }
+      
+      // Substituir código pausar IA
+      if (customizations.codigo_pausar_ia) {
+        systemMessage = systemMessage.replace(
+          /\{\{ \$\('Config-IA'\)\.item\.json\.PausarIA \}\}/g,
+          customizations.codigo_pausar_ia
+        );
+      }
+      
+      node.parameters.options.systemMessage = systemMessage;
+    }
+  });
+  
+  return customized;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -87,6 +141,14 @@ serve(async (req) => {
 
     // Build workflow based on template
     const callbackUrl = `${SUPABASE_URL}/functions/v1/n8n-webhook-callback`;
+    
+    let workflowJson = template.template_json;
+    
+    // Se for o template de Carros, personalizar com as customizações
+    if (template.name.includes('Carros') || template.name.includes('EstoqueCar')) {
+      console.log('Detected Carros template, applying customizations');
+      workflowJson = customizeCarrosTemplate(workflowJson, params.customizations || {});
+    }
     
     const workflowTemplate = {
       name: params.nome,
@@ -225,13 +287,23 @@ return {
     };
 
     // Create workflow in N8N
+    // Se tiver nodes customizados (template Carros), usar eles
+    const workflowPayload = workflowJson.nodes && workflowJson.nodes.length > 0
+      ? {
+          name: params.nome,
+          nodes: workflowJson.nodes,
+          connections: workflowJson.connections || {},
+          settings: workflowJson.settings || { executionOrder: 'v1' }
+        }
+      : workflowTemplate;
+    
     const response = await fetch(`${N8N_API_URL}/api/v1/workflows`, {
       method: 'POST',
       headers: {
         'X-N8N-API-KEY': N8N_API_KEY,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(workflowTemplate)
+      body: JSON.stringify(workflowPayload)
     });
 
     if (!response.ok) {
