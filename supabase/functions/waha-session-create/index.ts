@@ -36,8 +36,15 @@ serve(async (req) => {
     }
 
     const sessionName = `cliente-${clientId}`;
-    // Normaliza a URL do WAHA para garantir que use apenas o domínio (remove caminhos como /dashboard)
-    const base = new URL(wahaApiUrl);
+    
+    // Normaliza a URL do WAHA - adiciona https:// se não tiver protocolo
+    let normalizedUrl = wahaApiUrl;
+    if (!wahaApiUrl.startsWith('http://') && !wahaApiUrl.startsWith('https://')) {
+      normalizedUrl = `https://${wahaApiUrl}`;
+      console.log('Protocolo adicionado à URL:', normalizedUrl);
+    }
+    
+    const base = new URL(normalizedUrl);
     const requestUrl = new URL('/api/sessions/start', `${base.protocol}//${base.host}`).toString();
 
     console.log('Criando sessão WAHA:', {
