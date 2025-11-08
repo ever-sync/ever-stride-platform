@@ -20,6 +20,9 @@ import Users from "./pages/Users";
 import Integrations from "./pages/Integrations";
 import NotFound from "./pages/NotFound";
 import MasterAdmin from "./pages/MasterAdmin";
+import WhatsAppConnection from "./pages/WhatsAppConnection";
+import TokenUsage from "./pages/TokenUsage";
+import Planos from "./pages/Planos";
 
 const queryClient = new QueryClient();
 
@@ -141,6 +144,36 @@ const App = () => (
                 <AuthGuard>
                   <AppShell>
                     <Integrations />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/whatsapp-connection"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <WhatsAppConnection />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/token-usage"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <TokenUsage />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/planos"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <Planos />
                   </AppShell>
                 </AuthGuard>
               }

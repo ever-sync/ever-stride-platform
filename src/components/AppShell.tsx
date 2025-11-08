@@ -29,6 +29,9 @@ import {
   Bot,
   BookOpen,
   Shield,
+  Smartphone,
+  TrendingUp,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
@@ -49,6 +52,9 @@ export function AppShell({ children }: AppShellProps) {
     { name: "Agentes", href: "/agents", icon: Bot },
     { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
     { name: "Chats", href: "/chats", icon: MessageSquare },
+    { name: "WhatsApp", href: "/whatsapp-connection", icon: Smartphone },
+    { name: "Uso de Tokens", href: "/token-usage", icon: TrendingUp },
+    { name: "Planos", href: "/planos", icon: CreditCard },
     { name: "Relatórios", href: "/reports", icon: FileText },
     { name: "Relatórios por Cliente", href: "/client-reports", icon: FileText },
     { name: "Configurações", href: "/settings", icon: Settings },
@@ -65,6 +71,9 @@ export function AppShell({ children }: AppShellProps) {
         { name: "Agentes", href: "/agents", icon: Bot },
         { name: "Base de Conhecimento", href: "/knowledge-base", icon: BookOpen },
         { name: "Chats", href: "/chats", icon: MessageSquare },
+        { name: "WhatsApp", href: "/whatsapp-connection", icon: Smartphone },
+        { name: "Uso de Tokens", href: "/token-usage", icon: TrendingUp },
+        { name: "Planos", href: "/planos", icon: CreditCard },
         { name: "Relatórios", href: "/reports", icon: FileText },
         { name: "Relatórios por Cliente", href: "/client-reports", icon: FileText },
         { name: "Configurações", href: "/settings", icon: Settings },
