@@ -27,18 +27,37 @@ serve(async (req) => {
 
     // If POST request with action=reset, attempt to reset circuit breaker
     if (req.method === 'POST') {
-      const { action } = await req.json();
-      
-      if (action === 'reset') {
-        await circuitBreaker.updateState('CLOSED', 0);
+      try {
+        const body = await req.text();
+        if (!body) {
+          throw new Error('Empty request body');
+        }
         
+        const { action } = JSON.parse(body);
+        
+        if (action === 'reset') {
+          await circuitBreaker.updateState('CLOSED', 0);
+          
+          return new Response(
+            JSON.stringify({
+              success: true,
+              message: 'Circuit breaker has been reset',
+              state: 'CLOSED'
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      } catch (parseError) {
+        console.error('Error parsing POST request:', parseError);
         return new Response(
-          JSON.stringify({
-            success: true,
-            message: 'Circuit breaker has been reset',
-            state: 'CLOSED'
+          JSON.stringify({ 
+            error: 'Invalid request body',
+            details: parseError instanceof Error ? parseError.message : 'Unknown error'
           }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { 
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
         );
       }
     }
