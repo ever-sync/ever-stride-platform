@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { ChatHeader } from "@/components/chats/ChatHeader";
 import { ChatMessageList } from "@/components/chats/ChatMessageList";
+import { ChatStatistics } from "@/components/chats/ChatStatistics";
+import { ChatInput } from "@/components/chats/ChatInput";
 import { Card } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import type { Chat } from "@/types/database";
@@ -71,14 +73,23 @@ export default function ChatDetail() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
+    <div className="flex flex-col h-[calc(100vh-8rem)] space-y-4">
       <ChatHeader
         phone={chat.phone || "Desconhecido"}
         chatId={chat.id}
         messageCount={messages.length}
       />
       
-      <ChatMessageList messages={messages} loading={loadingMessages} />
+      <ChatStatistics messages={messages} />
+      
+      <div className="flex-1 flex flex-col min-h-0">
+        <ChatMessageList messages={messages} loading={loadingMessages} />
+        <ChatInput
+          chatId={chat.id}
+          sessionId={chat.session_id || undefined}
+          phone={chat.phone || ""}
+        />
+      </div>
     </div>
   );
 }

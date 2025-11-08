@@ -5,21 +5,50 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, MessageSquare, Filter, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Chat } from "@/types/database";
 
+interface ExtendedChat extends Chat {
+  waha_sessions?: {
+    session_name: string;
+  };
+  end_users?: {
+    nome: string;
+  };
+}
+
+interface WahaSession {
+  id: string;
+  session_name: string;
+}
+
+interface Agent {
+  id: string;
+  nome_agente: string;
+}
+
 export default function Chats() {
   const navigate = useNavigate();
   const { userSession } = useAuth();
-  const [chats, setChats] = useState<Chat[]>([]);
+  const [chats, setChats] = useState<ExtendedChat[]>([]);
+  const [sessions, setSessions] = useState<WahaSession[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [search, setSearch] = useState("");
+  const [sessionFilter, setSessionFilter] = useState<string>("all");
+  const [agentFilter, setAgentFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     if (userSession?.tenant) {
       loadChats();
+      loadSessions();
+      loadAgents();
     }
   }, [userSession]);
 
@@ -29,13 +58,17 @@ export default function Chats() {
     try {
       const { data, error } = await supabase
         .from("chats")
-        .select("*")
+        .select(`
+          *,
+          waha_sessions(session_name),
+          end_users!chats_end_user_id_fkey(nome)
+        `)
         .eq("tenant_id", userSession.tenant.id)
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(200);
 
       if (error) throw error;
-      setChats(data || []);
+      setChats(data as any || []);
     } catch (error) {
       console.error("Error loading chats:", error);
     } finally {
@@ -43,9 +76,75 @@ export default function Chats() {
     }
   };
 
-  const filteredChats = chats.filter((chat) =>
-    chat.phone?.toLowerCase().includes(search.toLowerCase())
-  );
+  const loadSessions = async () => {
+    if (!userSession?.tenant?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("waha_sessions")
+        .select("id, session_name")
+        .eq("tenant_id", userSession.tenant.id)
+        .order("session_name");
+
+      if (error) throw error;
+      setSessions(data || []);
+    } catch (error) {
+      console.error("Error loading sessions:", error);
+    }
+  };
+
+  const loadAgents = async () => {
+    if (!userSession?.tenant?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("agents")
+        .select("id, nome_agente")
+        .eq("tenant_id", userSession.tenant.id)
+        .order("nome_agente");
+
+      if (error) throw error;
+      setAgents(data || []);
+    } catch (error) {
+      console.error("Error loading agents:", error);
+    }
+  };
+
+  const clearFilters = () => {
+    setSearch("");
+    setSessionFilter("all");
+    setAgentFilter("all");
+    setDateFrom("");
+    setDateTo("");
+  };
+
+  const filteredChats = chats.filter((chat) => {
+    // Busca por telefone ou nome
+    const matchesSearch = 
+      chat.phone?.toLowerCase().includes(search.toLowerCase()) ||
+      chat.end_users?.nome?.toLowerCase().includes(search.toLowerCase());
+    
+    // Filtro por sessão
+    const matchesSession = sessionFilter === "all" || chat.session_id === sessionFilter;
+    
+    // Filtro por data
+    let matchesDate = true;
+    if (dateFrom || dateTo) {
+      const chatDate = chat.created_at ? new Date(chat.created_at) : null;
+      if (chatDate) {
+        if (dateFrom) {
+          matchesDate = matchesDate && chatDate >= new Date(dateFrom);
+        }
+        if (dateTo) {
+          matchesDate = matchesDate && chatDate <= new Date(dateTo + "T23:59:59");
+        }
+      } else {
+        matchesDate = false;
+      }
+    }
+
+    return matchesSearch && matchesSession && matchesDate;
+  });
 
   return (
     <div className="space-y-6">
@@ -54,14 +153,76 @@ export default function Chats() {
         <p className="text-muted-foreground mt-1">Gerencie suas conversas</p>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por telefone..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
-        />
+      <div className="space-y-4">
+        <div className="flex gap-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por telefone ou nome..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Filtros
+          </Button>
+        </div>
+
+        {showFilters && (
+          <Card className="p-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Sessão WhatsApp</label>
+                <select
+                  value={sessionFilter}
+                  onChange={(e) => setSessionFilter(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                >
+                  <option value="all">Todas as sessões</option>
+                  {sessions.map((session) => (
+                    <option key={session.id} value={session.id}>
+                      {session.session_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Data inicial</label>
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Data final</label>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+              </div>
+
+              <div className="flex items-end">
+                <Button
+                  variant="ghost"
+                  onClick={clearFilters}
+                  className="w-full"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Limpar filtros
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
       </div>
 
       {loading ? (
@@ -85,9 +246,17 @@ export default function Chats() {
                   </div>
                   
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-semibold">{chat.phone}</span>
                       <Badge variant="secondary">#{chat.id}</Badge>
+                      {chat.end_users?.nome && (
+                        <Badge variant="outline">{chat.end_users.nome}</Badge>
+                      )}
+                      {chat.waha_sessions?.session_name && (
+                        <Badge variant="default" className="text-xs">
+                          {chat.waha_sessions.session_name}
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
                       Criado em{" "}
