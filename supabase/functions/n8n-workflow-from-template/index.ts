@@ -207,8 +207,7 @@ return {
       connections: {},
       settings: {
         executionOrder: 'v1'
-      },
-      active: true
+      }
     };
 
     // Create workflow in N8N
@@ -244,6 +243,28 @@ return {
     }
 
     const workflowData = await response.json();
+
+    // Activate workflow after creation (active field is read-only on create)
+    let isActive = false;
+    try {
+      const activateRes = await fetch(`${N8N_API_URL}/api/v1/workflows/${workflowData.id}`, {
+        method: 'PATCH',
+        headers: {
+          'X-N8N-API-KEY': N8N_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ active: true })
+      });
+      if (!activateRes.ok) {
+        const text = await activateRes.text();
+        console.error('Failed to activate workflow in N8N:', activateRes.status, text);
+      } else {
+        isActive = true;
+      }
+    } catch (e) {
+      console.error('Error activating workflow in N8N:', e);
+    }
+
     const webhookUrl = `${N8N_API_URL}/webhook/${workflowTemplate.nodes[0].parameters.path}`;
 
     // Save to database
@@ -256,7 +277,7 @@ return {
         workflow_name: params.nome,
         webhook_url: webhookUrl,
         webhook_test_url: `${webhookUrl}/test`,
-        is_active: true
+        is_active: isActive
       })
       .select()
       .single();
