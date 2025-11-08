@@ -6,6 +6,26 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Status mapping utility
+const WAHA_TO_DB_STATUS_MAP: Record<string, string> = {
+  'STARTING': 'connecting',
+  'SCAN_QR_CODE': 'qr_code',
+  'WORKING': 'connected',
+  'STOPPED': 'stopped',
+  'FAILED': 'failed',
+  'disconnected': 'disconnected',
+  'connecting': 'connecting',
+  'qr_code': 'qr_code',
+  'connected': 'connected',
+  'stopped': 'stopped',
+  'failed': 'failed',
+  'working': 'connected',
+};
+
+function mapWahaStatusToDb(wahaStatus: string): string {
+  return WAHA_TO_DB_STATUS_MAP[wahaStatus] || 'disconnected';
+}
+
 interface WahaWebhookPayload {
   event: string;
   session: string;
@@ -38,12 +58,14 @@ serve(async (req) => {
 
     // 1. Atualizar status da sessão
     if (payload.event === 'session.status') {
+      const mappedStatus = mapWahaStatusToDb(payload.payload.status || 'disconnected');
+      
       const updateData: any = {
-        status: payload.payload.status || 'disconnected',
+        status: mappedStatus,
         last_activity: new Date().toISOString(),
       };
 
-      if (payload.payload.status === 'connected') {
+      if (mappedStatus === 'connected') {
         updateData.connected_at = new Date().toISOString();
         updateData.phone_number = payload.payload.from;
       }
