@@ -591,6 +591,161 @@ export type Database = {
           },
         ]
       }
+      n8n_execution_logs: {
+        Row: {
+          agent_id: string | null
+          created_at: string | null
+          error_message: string | null
+          error_stack: string | null
+          execution_id: string
+          execution_mode: string | null
+          execution_status: string
+          execution_time_ms: number | null
+          failed_node: string | null
+          finished_at: string | null
+          id: string
+          input_data: Json | null
+          nodes_executed: Json | null
+          output_data: Json | null
+          started_at: string
+          tenant_id: number
+          total_nodes: number | null
+          workflow_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          error_stack?: string | null
+          execution_id: string
+          execution_mode?: string | null
+          execution_status: string
+          execution_time_ms?: number | null
+          failed_node?: string | null
+          finished_at?: string | null
+          id?: string
+          input_data?: Json | null
+          nodes_executed?: Json | null
+          output_data?: Json | null
+          started_at: string
+          tenant_id: number
+          total_nodes?: number | null
+          workflow_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          error_stack?: string | null
+          execution_id?: string
+          execution_mode?: string | null
+          execution_status?: string
+          execution_time_ms?: number | null
+          failed_node?: string | null
+          finished_at?: string | null
+          id?: string
+          input_data?: Json | null
+          nodes_executed?: Json | null
+          output_data?: Json | null
+          started_at?: string
+          tenant_id?: number
+          total_nodes?: number | null
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "n8n_execution_logs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "n8n_execution_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      n8n_workflow_templates: {
+        Row: {
+          category: string
+          configurable_params: Json | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          difficulty_level: string | null
+          has_ai: boolean | null
+          has_approval_flow: boolean | null
+          has_human_handoff: boolean | null
+          has_knowledge_base: boolean | null
+          has_multi_channel: boolean | null
+          icon: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          required_integrations: string[] | null
+          template_json: Json
+          tenant_id: number | null
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          category: string
+          configurable_params?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          has_ai?: boolean | null
+          has_approval_flow?: boolean | null
+          has_human_handoff?: boolean | null
+          has_knowledge_base?: boolean | null
+          has_multi_channel?: boolean | null
+          icon?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          required_integrations?: string[] | null
+          template_json: Json
+          tenant_id?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          configurable_params?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          has_ai?: boolean | null
+          has_approval_flow?: boolean | null
+          has_human_handoff?: boolean | null
+          has_knowledge_base?: boolean | null
+          has_multi_channel?: boolean | null
+          icon?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          required_integrations?: string[] | null
+          template_json?: Json
+          tenant_id?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "n8n_workflow_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       n8n_workflows: {
         Row: {
           agent_id: string | null
@@ -1841,6 +1996,14 @@ export type Database = {
           metadata: Json
           similarity: number
         }[]
+      }
+      update_n8n_workflow_stats: {
+        Args: {
+          p_execution_status: string
+          p_execution_time_ms: number
+          p_workflow_id: string
+        }
+        Returns: undefined
       }
       verificar_limite_cliente: {
         Args: { p_client_id: string }

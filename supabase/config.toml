@@ -9,6 +9,18 @@ verify_jwt = false
 [functions.waha-webhook]
 verify_jwt = false
 
+# N8N webhook callback - must be public for N8N to call
+[functions.n8n-webhook-callback]
+verify_jwt = false
+
+# N8N template creation
+[functions.n8n-workflow-from-template]
+verify_jwt = true
+
+# N8N statistics
+[functions.n8n-get-stats]
+verify_jwt = true
+
 # All other functions now require JWT authentication
 # Removed verify_jwt = false from:
 # - waha-session-create
