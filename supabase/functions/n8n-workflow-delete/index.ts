@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { fetchWithRetry } from '../_shared/retry.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -32,12 +33,18 @@ serve(async (req) => {
 
     const { workflowId } = await req.json();
 
-    const response = await fetch(`${N8N_API_URL}/api/v1/workflows/${workflowId}`, {
-      method: 'DELETE',
-      headers: {
-        'X-N8N-API-KEY': N8N_API_KEY
-      }
-    });
+    console.log(`Attempting to delete workflow ${workflowId}`);
+
+    const response = await fetchWithRetry(
+      `${N8N_API_URL}/api/v1/workflows/${workflowId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'X-N8N-API-KEY': N8N_API_KEY
+        }
+      },
+      3 // maxRetries
+    );
 
     if (!response.ok) {
       const errorText = await response.text();

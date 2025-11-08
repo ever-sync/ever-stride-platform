@@ -1,8 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { fetchWithRetry } from '../_shared/retry.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+// Helper function to normalize N8N URL
+const normalizeN8nUrl = (url: string): string => {
+  if (!url) return url;
+  // Remove trailing slashes
+  url = url.replace(/\/+$/, '');
+  // Add https:// if no protocol is present
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`;
+  }
+  return url;
 };
 
 serve(async (req) => {
@@ -11,7 +24,7 @@ serve(async (req) => {
   }
 
   try {
-    const N8N_API_URL = Deno.env.get('N8N_API_URL');
+    const N8N_API_URL = normalizeN8nUrl(Deno.env.get('N8N_API_URL') || '');
     const N8N_API_KEY = Deno.env.get('N8N_API_KEY');
 
     if (!N8N_API_URL || !N8N_API_KEY) {
@@ -20,14 +33,20 @@ serve(async (req) => {
 
     const { workflowId, active } = await req.json();
 
-    const response = await fetch(`${N8N_API_URL}/api/v1/workflows/${workflowId}`, {
-      method: 'PATCH',
-      headers: {
-        'X-N8N-API-KEY': N8N_API_KEY,
-        'Content-Type': 'application/json'
+    console.log(`Attempting to ${active ? 'activate' : 'deactivate'} workflow ${workflowId}`);
+
+    const response = await fetchWithRetry(
+      `${N8N_API_URL}/api/v1/workflows/${workflowId}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'X-N8N-API-KEY': N8N_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ active })
       },
-      body: JSON.stringify({ active })
-    });
+      3 // maxRetries
+    );
 
     if (!response.ok) {
       const errorText = await response.text();

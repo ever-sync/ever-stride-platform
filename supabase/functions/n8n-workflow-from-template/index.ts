@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { fetchWithRetry } from '../_shared/retry.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -307,14 +308,18 @@ return {
     
     console.log('Creating workflow with payload:', JSON.stringify(workflowPayload).substring(0, 200));
     
-    const response = await fetch(`${N8N_API_URL}/api/v1/workflows`, {
-      method: 'POST',
-      headers: {
-        'X-N8N-API-KEY': N8N_API_KEY,
-        'Content-Type': 'application/json'
+    const response = await fetchWithRetry(
+      `${N8N_API_URL}/api/v1/workflows`,
+      {
+        method: 'POST',
+        headers: {
+          'X-N8N-API-KEY': N8N_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(workflowPayload)
       },
-      body: JSON.stringify(workflowPayload)
-    });
+      3 // maxRetries
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -343,14 +348,18 @@ return {
     // Activate workflow after creation (active field is read-only on create)
     let isActive = false;
     try {
-      const activateRes = await fetch(`${N8N_API_URL}/api/v1/workflows/${workflowData.id}`, {
-        method: 'PUT',
-        headers: {
-          'X-N8N-API-KEY': N8N_API_KEY,
-          'Content-Type': 'application/json'
+      const activateRes = await fetchWithRetry(
+        `${N8N_API_URL}/api/v1/workflows/${workflowData.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'X-N8N-API-KEY': N8N_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ ...workflowData, active: true })
         },
-        body: JSON.stringify({ ...workflowData, active: true })
-      });
+        3 // maxRetries
+      );
       if (!activateRes.ok) {
         const text = await activateRes.text();
         console.error('Failed to activate workflow in N8N:', activateRes.status, text);
@@ -381,11 +390,19 @@ return {
 
     if (dbError) {
       console.error('Error saving to database:', dbError);
-      // Try to delete the N8N workflow
-      await fetch(`${N8N_API_URL}/api/v1/workflows/${workflowData.id}`, {
-        method: 'DELETE',
-        headers: { 'X-N8N-API-KEY': N8N_API_KEY }
-      });
+      // Try to delete the N8N workflow (with retry)
+      try {
+        await fetchWithRetry(
+          `${N8N_API_URL}/api/v1/workflows/${workflowData.id}`,
+          {
+            method: 'DELETE',
+            headers: { 'X-N8N-API-KEY': N8N_API_KEY }
+          },
+          2 // fewer retries for cleanup
+        );
+      } catch (cleanupError) {
+        console.error('Failed to cleanup N8N workflow after DB error:', cleanupError);
+      }
       throw dbError;
     }
 

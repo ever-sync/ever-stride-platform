@@ -1,8 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { fetchWithRetry } from '../_shared/retry.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+// Helper function to normalize N8N URL
+const normalizeN8nUrl = (url: string): string => {
+  if (!url) return url;
+  // Remove trailing slashes
+  url = url.replace(/\/+$/, '');
+  // Add https:// if no protocol is present
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`;
+  }
+  return url;
 };
 
 serve(async (req) => {
@@ -11,7 +24,7 @@ serve(async (req) => {
   }
 
   try {
-    const N8N_API_URL = Deno.env.get('N8N_API_URL');
+    const N8N_API_URL = normalizeN8nUrl(Deno.env.get('N8N_API_URL') || '');
     const N8N_API_KEY = Deno.env.get('N8N_API_KEY');
     const WAHA_API_URL = Deno.env.get('WAHA_API_URL');
     const WAHA_API_KEY = Deno.env.get('WAHA_API_KEY');
@@ -22,6 +35,8 @@ serve(async (req) => {
     }
 
     const { agentId, clientId, nome } = await req.json();
+    
+    console.log('Creating N8N workflow:', { agentId, clientId, nome });
 
     // Template do workflow
     const workflowTemplate = {
@@ -114,14 +129,18 @@ serve(async (req) => {
       settings: {}
     };
 
-    const response = await fetch(`${N8N_API_URL}/api/v1/workflows`, {
-      method: 'POST',
-      headers: {
-        'X-N8N-API-KEY': N8N_API_KEY,
-        'Content-Type': 'application/json'
+    const response = await fetchWithRetry(
+      `${N8N_API_URL}/api/v1/workflows`,
+      {
+        method: 'POST',
+        headers: {
+          'X-N8N-API-KEY': N8N_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(workflowTemplate)
       },
-      body: JSON.stringify(workflowTemplate)
-    });
+      3 // maxRetries
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
