@@ -12,7 +12,8 @@ import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import Agents from "./pages/Agents";
 import AgentDetail from "./pages/AgentDetail";
-import AgentEdit from "./pages/AgentEdit";
+import AgentEdit from './pages/AgentEdit'
+import AgentComparison from './pages/AgentComparison'
 import SystemDashboard from "./pages/SystemDashboard";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import Chats from "./pages/Chats";
@@ -112,6 +113,16 @@ const App = () => (
                 <AuthGuard>
                   <AppShell>
                     <AgentEdit />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/agents/comparison"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <AgentComparison />
                   </AppShell>
                 </AuthGuard>
               }

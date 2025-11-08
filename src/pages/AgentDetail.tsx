@@ -3,6 +3,9 @@ import { AppShell } from '@/components/AppShell'
 import { useAgentMonitoring } from '@/hooks/useAgentMonitoring'
 import { useAgentActions } from '@/hooks/useAgentActions'
 import { AgentMonitoringDashboard } from '@/components/agents/AgentMonitoringDashboard'
+import { AgentAnalytics } from '@/components/agents/AgentAnalytics'
+import { PromptVersionManager } from '@/components/agents/PromptVersionManager'
+import { ABTestManager } from '@/components/agents/ABTestManager'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -16,7 +19,8 @@ import {
   TrendingUp,
   Activity,
   Zap,
-  MessageSquare
+  MessageSquare,
+  History
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -137,7 +141,7 @@ export default function AgentDetailPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="monitoring" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="monitoring">
               <Activity className="h-4 w-4 mr-2" />
               Monitoramento
@@ -149,6 +153,14 @@ export default function AgentDetailPage() {
             <TabsTrigger value="analytics">
               <TrendingUp className="h-4 w-4 mr-2" />
               Analytics
+            </TabsTrigger>
+            <TabsTrigger value="versions">
+              <History className="h-4 w-4 mr-2" />
+              Versões
+            </TabsTrigger>
+            <TabsTrigger value="ab-tests">
+              <TestTube className="h-4 w-4 mr-2" />
+              Testes A/B
             </TabsTrigger>
             <TabsTrigger value="chats">
               <MessageSquare className="h-4 w-4 mr-2" />
@@ -224,46 +236,17 @@ export default function AgentDetailPage() {
 
           {/* Tab 3: Analytics Avançado */}
           <TabsContent value="analytics">
-            <div className="grid gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Performance Histórico (30 dias)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-96 bg-muted rounded flex items-center justify-center">
-                    <p className="text-muted-foreground">
-                      Gráfico de performance ao longo do tempo
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+            <AgentAnalytics agentId={agentId!} />
+          </TabsContent>
 
-              <div className="grid grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Top Erros</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <p className="text-muted-foreground text-center py-8">
-                        Nenhum erro recente
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* Tab 4: Versionamento */}
+          <TabsContent value="versions">
+            <PromptVersionManager agentId={agentId!} />
+          </TabsContent>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Horários de Pico</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64 bg-muted rounded flex items-center justify-center">
-                      <p className="text-muted-foreground">Heatmap de atividade</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+          {/* Tab 5: Testes A/B */}
+          <TabsContent value="ab-tests">
+            <ABTestManager agentId={agentId!} />
           </TabsContent>
 
           {/* Tab 4: Conversas Recentes */}

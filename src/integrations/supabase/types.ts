@@ -1273,6 +1273,213 @@ export type Database = {
         }
         Relationships: []
       }
+      prompt_ab_interactions: {
+        Row: {
+          agent_id: string
+          chat_id: number | null
+          cost_brl: number | null
+          created_at: string
+          id: string
+          latency_ms: number | null
+          message_id: number | null
+          prompt_version_id: string | null
+          success: boolean | null
+          test_id: string
+          tokens_used: number | null
+          variant_used: string
+        }
+        Insert: {
+          agent_id: string
+          chat_id?: number | null
+          cost_brl?: number | null
+          created_at?: string
+          id?: string
+          latency_ms?: number | null
+          message_id?: number | null
+          prompt_version_id?: string | null
+          success?: boolean | null
+          test_id: string
+          tokens_used?: number | null
+          variant_used: string
+        }
+        Update: {
+          agent_id?: string
+          chat_id?: number | null
+          cost_brl?: number | null
+          created_at?: string
+          id?: string
+          latency_ms?: number | null
+          message_id?: number | null
+          prompt_version_id?: string | null
+          success?: boolean | null
+          test_id?: string
+          tokens_used?: number | null
+          variant_used?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_ab_interactions_prompt_version_id_fkey"
+            columns: ["prompt_version_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompt_ab_interactions_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_ab_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prompt_ab_tests: {
+        Row: {
+          agent_id: string
+          avg_cost_a: number | null
+          avg_cost_b: number | null
+          avg_latency_a: number | null
+          avg_latency_b: number | null
+          avg_tokens_a: number | null
+          avg_tokens_b: number | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ended_at: string | null
+          id: string
+          started_at: string | null
+          status: string | null
+          success_rate_a: number | null
+          success_rate_b: number | null
+          tenant_id: number
+          test_name: string
+          total_interactions_a: number | null
+          total_interactions_b: number | null
+          traffic_split_percent: number | null
+          updated_at: string
+          variant_a_id: string | null
+          variant_b_id: string | null
+          winner_variant: string | null
+        }
+        Insert: {
+          agent_id: string
+          avg_cost_a?: number | null
+          avg_cost_b?: number | null
+          avg_latency_a?: number | null
+          avg_latency_b?: number | null
+          avg_tokens_a?: number | null
+          avg_tokens_b?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          success_rate_a?: number | null
+          success_rate_b?: number | null
+          tenant_id: number
+          test_name: string
+          total_interactions_a?: number | null
+          total_interactions_b?: number | null
+          traffic_split_percent?: number | null
+          updated_at?: string
+          variant_a_id?: string | null
+          variant_b_id?: string | null
+          winner_variant?: string | null
+        }
+        Update: {
+          agent_id?: string
+          avg_cost_a?: number | null
+          avg_cost_b?: number | null
+          avg_latency_a?: number | null
+          avg_latency_b?: number | null
+          avg_tokens_a?: number | null
+          avg_tokens_b?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          success_rate_a?: number | null
+          success_rate_b?: number | null
+          tenant_id?: number
+          test_name?: string
+          total_interactions_a?: number | null
+          total_interactions_b?: number | null
+          traffic_split_percent?: number | null
+          updated_at?: string
+          variant_a_id?: string | null
+          variant_b_id?: string | null
+          winner_variant?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_ab_tests_variant_a_id_fkey"
+            columns: ["variant_a_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompt_ab_tests_variant_b_id_fkey"
+            columns: ["variant_b_id"]
+            isOneToOne: false
+            referencedRelation: "prompt_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prompt_versions: {
+        Row: {
+          agent_id: string
+          backup_type: string | null
+          change_description: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          max_tokens: number | null
+          modelo_ia: string | null
+          prompt_sistema: string
+          temperatura: number | null
+          tenant_id: number
+          version_number: number
+        }
+        Insert: {
+          agent_id: string
+          backup_type?: string | null
+          change_description?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_tokens?: number | null
+          modelo_ia?: string | null
+          prompt_sistema: string
+          temperatura?: number | null
+          tenant_id: number
+          version_number: number
+        }
+        Update: {
+          agent_id?: string
+          backup_type?: string | null
+          change_description?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_tokens?: number | null
+          modelo_ia?: string | null
+          prompt_sistema?: string
+          temperatura?: number | null
+          tenant_id?: number
+          version_number?: number
+        }
+        Relationships: []
+      }
       quick_reply_templates: {
         Row: {
           category: string | null
