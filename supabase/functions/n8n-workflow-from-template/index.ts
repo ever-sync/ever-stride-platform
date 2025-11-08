@@ -35,10 +35,11 @@ const normalizeN8nUrl = (url: string): string => {
   return url;
 };
 
-// Function to customize Carros template
+// Function to customize Carros template with dynamic agent configuration
 const customizeCarrosTemplate = (
   templateJson: any,
-  customizations: any
+  customizations: any,
+  agentId: string
 ): any => {
   console.log('Customizing Carros template with:', customizations);
   
@@ -46,19 +47,38 @@ const customizeCarrosTemplate = (
   
   // Substituir placeholders nos nós
   customized.nodes?.forEach((node: any) => {
+    // Update Supabase GET nodes to use workflow.id for dynamic queries
+    if (node.type === 'n8n-nodes-base.supabase' && node.parameters?.operation === 'get') {
+      console.log('Configuring Supabase GET node:', node.name);
+      
+      // Configure filters to use $workflow.id
+      if (node.parameters?.filterType === 'manual' && node.parameters?.filters?.conditions) {
+        node.parameters.filters.conditions = node.parameters.filters.conditions.map((condition: any) => {
+          if (condition.keyName === 'workflow_id' || condition.keyName === 'n8n_workflow_id') {
+            return {
+              ...condition,
+              keyValue: '={{ $workflow.id }}' // Use N8N's built-in workflow ID
+            };
+          }
+          return condition;
+        });
+      }
+    }
+    
     // Personalizar nó do AI Agent
     if (node.type === '@n8n/n8n-nodes-langchain.agent' && node.parameters?.options?.systemMessage) {
       let systemMessage = node.parameters.options.systemMessage;
       
-      // Substituir script de atendimento
+      // Keep dynamic references to database fields for real-time updates
+      // Only replace if explicit customization is provided
       if (customizations.script_atendimento) {
+        // If custom script provided, use it; otherwise keep DB reference
         systemMessage = systemMessage.replace(
           /\{\{ \$\('Config-IA'\)\.item\.json\.Script \}\}/g,
           customizations.script_atendimento
         );
       }
       
-      // Substituir código transferir grupo
       if (customizations.codigo_transferir_grupo) {
         systemMessage = systemMessage.replace(
           /\{\{ \$\('Config-IA'\)\.item\.json\['Transferir Grupo'\] \}\}/g,
@@ -66,7 +86,6 @@ const customizeCarrosTemplate = (
         );
       }
       
-      // Substituir código transferir vendedor
       if (customizations.codigo_transferir_vendedor) {
         systemMessage = systemMessage.replace(
           /\{\{ \$\('Config-IA'\)\.item\.json\['Transferir Vendedor'\] \}\}/g,
@@ -74,7 +93,6 @@ const customizeCarrosTemplate = (
         );
       }
       
-      // Substituir código pausar IA
       if (customizations.codigo_pausar_ia) {
         systemMessage = systemMessage.replace(
           /\{\{ \$\('Config-IA'\)\.item\.json\.PausarIA \}\}/g,
@@ -83,9 +101,31 @@ const customizeCarrosTemplate = (
       }
       
       node.parameters.options.systemMessage = systemMessage;
+      
+      console.log('Updated AI Agent system message with customizations');
+    }
+    
+    // Configure HTTP Request nodes for Supabase edge functions
+    if (node.type === 'n8n-nodes-base.httpRequest' && 
+        node.parameters?.url?.includes('/functions/v1/')) {
+      console.log('Configuring HTTP Request node:', node.name);
+      
+      // Ensure agentId is passed in body for edge function calls
+      if (node.parameters?.bodyParametersJson) {
+        try {
+          const body = JSON.parse(node.parameters.bodyParametersJson);
+          if (!body.agentId) {
+            body.agentId = `={{ "${agentId}" }}`;
+            node.parameters.bodyParametersJson = JSON.stringify(body, null, 2);
+          }
+        } catch (e) {
+          console.log('Could not parse body JSON for node:', node.name);
+        }
+      }
     }
   });
   
+  console.log('Template customization complete');
   return customized;
 };
 
@@ -149,7 +189,11 @@ serve(async (req) => {
     // Se for o template de Carros, personalizar com as customizações
     if (template.name.includes('Carros') || template.name.includes('EstoqueCar')) {
       console.log('Detected Carros template, applying customizations');
-      workflowJson = customizeCarrosTemplate(workflowJson, params.customizations || {});
+      workflowJson = customizeCarrosTemplate(
+        workflowJson, 
+        params.customizations || {}, 
+        params.agentId
+      );
     }
     
     const workflowTemplate = {
@@ -417,6 +461,26 @@ return {
         console.error('Failed to cleanup N8N workflow after DB error:', cleanupError);
       }
       throw dbError;
+    }
+
+    // Update agent with workflow_id to enable N8N nodes to query agent data
+    console.log('Updating agent with workflow_id:', workflowData.id);
+    const { error: agentUpdateError } = await supabase
+      .from('agents')
+      .update({
+        workflow_id: workflowData.id,           // N8N workflow ID for node queries
+        n8n_workflow_id: dbWorkflow.id,         // DB record ID
+        webhook_url: webhookUrl,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', params.agentId);
+
+    if (agentUpdateError) {
+      console.error('Warning: Could not update agent with workflow_id:', agentUpdateError);
+      // Don't fail the workflow creation, just log the warning
+      // The workflow is still functional, just won't have the reverse link
+    } else {
+      console.log('Agent updated successfully with workflow_id');
     }
 
     // Update template usage count

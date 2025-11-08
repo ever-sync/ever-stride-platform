@@ -145,6 +145,17 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
             </Alert>
           )}
 
+          {selectedAgentId && activeAgents.find(a => a.id === selectedAgentId) && (
+            <Alert className="bg-primary/5 border-primary/20">
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+              <AlertDescription>
+                Este workflow será vinculado ao agente <strong>{activeAgents.find(a => a.id === selectedAgentId)?.nome_agente}</strong>.
+                Todas as configurações do agente (script, modelo IA, parâmetros) serão usadas automaticamente pelo workflow.
+                O ID do workflow será salvo no banco de dados para permitir consultas dinâmicas.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="agent-select">Agente *</Label>
             <Select value={selectedAgentId} onValueChange={setSelectedAgentId} disabled={loadingAgents || activeAgents.length === 0}>
