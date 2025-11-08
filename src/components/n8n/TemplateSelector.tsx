@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Brain, 
   BookOpen, 
@@ -12,12 +13,16 @@ import {
   Zap,
   CheckCircle2,
   TrendingUp,
-  Search
+  Search,
+  AlertCircle
 } from "lucide-react";
 import type { N8NWorkflowTemplate } from "@/types/n8n";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useN8NWorkflows } from "@/hooks/useN8NWorkflows";
+import { useAgents } from "@/hooks/useAgents";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface TemplateSelectorProps {
   templates: N8NWorkflowTemplate[];
@@ -40,9 +45,14 @@ const difficultyColors: Record<string, string> = {
 export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<N8NWorkflowTemplate | null>(null);
   const [workflowName, setWorkflowName] = useState("");
+  const [selectedAgentId, setSelectedAgentId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const { createFromTemplate, operationLoading } = useN8NWorkflows();
+  const { agentes, loading: loadingAgents } = useAgents();
+  const { userSession } = useAuth();
+  
+  const tenantId = userSession?.tenantUser?.tenant_id;
 
   const filteredTemplates = templates.filter(template => {
     const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -57,14 +67,28 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
       return;
     }
 
-    // For demo purposes, using placeholder IDs
-    // In production, these should come from the agent/client selection
+    if (!selectedAgentId) {
+      toast.error("Selecione um agente");
+      return;
+    }
+
+    if (!tenantId) {
+      toast.error("Tenant não identificado");
+      return;
+    }
+
+    const selectedAgent = agentes.find(a => a.id === selectedAgentId);
+    if (!selectedAgent) {
+      toast.error("Agente selecionado não encontrado");
+      return;
+    }
+
     try {
       await createFromTemplate(
         selectedTemplate.id,
-        "placeholder-agent-id",
-        "placeholder-client-id",
-        1, // tenant_id
+        selectedAgentId,
+        selectedAgent.client_id || selectedAgentId, // Use client_id or fallback to agent_id
+        tenantId,
         workflowName
       );
       onSelect();
@@ -74,6 +98,8 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
   };
 
   if (selectedTemplate) {
+    const activeAgents = agentes.filter(a => a.ativo);
+    
     return (
       <div className="space-y-6">
         <DialogHeader>
@@ -89,8 +115,33 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
             {selectedTemplate.has_knowledge_base && <Badge variant="secondary">Base de Conhecimento</Badge>}
           </div>
 
+          {activeAgents.length === 0 && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Nenhum agente ativo encontrado. Crie e ative um agente antes de criar workflows.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-2">
-            <Label htmlFor="workflow-name">Nome do Workflow</Label>
+            <Label htmlFor="agent-select">Agente *</Label>
+            <Select value={selectedAgentId} onValueChange={setSelectedAgentId} disabled={loadingAgents || activeAgents.length === 0}>
+              <SelectTrigger id="agent-select">
+                <SelectValue placeholder="Selecione um agente" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeAgents.map((agent) => (
+                  <SelectItem key={agent.id} value={agent.id}>
+                    {agent.nome_agente}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="workflow-name">Nome do Workflow *</Label>
             <Input
               id="workflow-name"
               placeholder="Ex: Atendimento Cliente - Vendas"
@@ -117,6 +168,7 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
               onClick={() => {
                 setSelectedTemplate(null);
                 setWorkflowName("");
+                setSelectedAgentId("");
               }}
               disabled={operationLoading}
             >
@@ -125,7 +177,7 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
             <Button 
               className="flex-1" 
               onClick={handleCreate}
-              disabled={operationLoading || !workflowName.trim()}
+              disabled={operationLoading || !workflowName.trim() || !selectedAgentId || activeAgents.length === 0}
             >
               Criar Workflow
             </Button>

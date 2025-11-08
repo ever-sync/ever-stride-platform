@@ -15,6 +15,12 @@ interface CreateFromTemplateParams {
   customizations?: Record<string, any>;
 }
 
+// Helper to validate UUID format
+const isValidUUID = (uuid: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
+
 // Helper function to normalize N8N URL
 const normalizeN8nUrl = (url: string): string => {
   if (!url) return url;
@@ -35,6 +41,14 @@ serve(async (req) => {
   try {
     const params: CreateFromTemplateParams = await req.json();
     console.log('Creating workflow from template:', params.templateId);
+
+    // Validate UUIDs
+    if (!isValidUUID(params.templateId)) {
+      throw new Error(`Invalid template ID format: ${params.templateId}`);
+    }
+    if (!isValidUUID(params.agentId)) {
+      throw new Error(`Invalid agent ID format. Please select a valid agent from the list.`);
+    }
 
     const N8N_API_URL = normalizeN8nUrl(Deno.env.get('N8N_API_URL') || '');
     const N8N_API_KEY = Deno.env.get('N8N_API_KEY');
@@ -248,18 +262,19 @@ return {
     let isActive = false;
     try {
       const activateRes = await fetch(`${N8N_API_URL}/api/v1/workflows/${workflowData.id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'X-N8N-API-KEY': N8N_API_KEY,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ active: true })
+        body: JSON.stringify({ ...workflowData, active: true })
       });
       if (!activateRes.ok) {
         const text = await activateRes.text();
         console.error('Failed to activate workflow in N8N:', activateRes.status, text);
       } else {
         isActive = true;
+        console.log('Workflow activated successfully');
       }
     } catch (e) {
       console.error('Error activating workflow in N8N:', e);
