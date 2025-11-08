@@ -1111,15 +1111,63 @@ export type Database = {
           },
         ]
       }
+      waha_session_logs: {
+        Row: {
+          action_type: string
+          created_at: string
+          created_by: string | null
+          details: Json | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          session_id: string
+          status: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          created_by?: string | null
+          details?: Json | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          session_id: string
+          status: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          created_by?: string | null
+          details?: Json | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          session_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waha_session_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "waha_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waha_sessions: {
         Row: {
           agent_id: string | null
+          avg_response_time_ms: number | null
           client_id: string
           connected_at: string | null
           created_at: string | null
           disconnected_at: string | null
+          failed_messages: number | null
           id: string
           last_activity: string | null
+          last_error: string | null
+          last_error_at: string | null
           last_message_at: string | null
           phone_number: string | null
           qr_code: string | null
@@ -1127,6 +1175,7 @@ export type Database = {
           reconnect_attempts: number | null
           session_name: string
           status: string | null
+          success_rate: number | null
           tenant_id: number
           total_messages_received: number | null
           total_messages_sent: number | null
@@ -1135,12 +1184,16 @@ export type Database = {
         }
         Insert: {
           agent_id?: string | null
+          avg_response_time_ms?: number | null
           client_id: string
           connected_at?: string | null
           created_at?: string | null
           disconnected_at?: string | null
+          failed_messages?: number | null
           id?: string
           last_activity?: string | null
+          last_error?: string | null
+          last_error_at?: string | null
           last_message_at?: string | null
           phone_number?: string | null
           qr_code?: string | null
@@ -1148,6 +1201,7 @@ export type Database = {
           reconnect_attempts?: number | null
           session_name: string
           status?: string | null
+          success_rate?: number | null
           tenant_id: number
           total_messages_received?: number | null
           total_messages_sent?: number | null
@@ -1156,12 +1210,16 @@ export type Database = {
         }
         Update: {
           agent_id?: string | null
+          avg_response_time_ms?: number | null
           client_id?: string
           connected_at?: string | null
           created_at?: string | null
           disconnected_at?: string | null
+          failed_messages?: number | null
           id?: string
           last_activity?: string | null
+          last_error?: string | null
+          last_error_at?: string | null
           last_message_at?: string | null
           phone_number?: string | null
           qr_code?: string | null
@@ -1169,6 +1227,7 @@ export type Database = {
           reconnect_attempts?: number | null
           session_name?: string
           status?: string | null
+          success_rate?: number | null
           tenant_id?: number
           total_messages_received?: number | null
           total_messages_sent?: number | null
@@ -1538,6 +1597,17 @@ export type Database = {
       log_n8n_message: {
         Args: { p_message: Json; p_session_id: string; p_tenant_id: number }
         Returns: number
+      }
+      log_waha_session_action: {
+        Args: {
+          p_action_type: string
+          p_details?: Json
+          p_error_message?: string
+          p_metadata?: Json
+          p_session_id: string
+          p_status: string
+        }
+        Returns: string
       }
       resetar_limites_mensais: { Args: never; Returns: undefined }
       search_documents: {

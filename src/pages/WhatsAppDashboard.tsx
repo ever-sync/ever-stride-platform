@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast'
 import { NewSessionDialog } from '@/components/whatsapp/NewSessionDialog'
 import { WAHAHealthIndicator } from '@/components/whatsapp/WAHAHealthIndicator'
 import { QRCodeModal } from '@/components/whatsapp/QRCodeModal'
+import { SessionStatistics } from '@/components/whatsapp/SessionStatistics'
+import { SessionActivityLog } from '@/components/whatsapp/SessionActivityLog'
 import QRCode from 'react-qr-code'
 
 type WahaSession = {
@@ -324,30 +326,36 @@ export default function WhatsAppDashboard() {
         </Card>
       </div>
 
-      {/* Sessões WhatsApp */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Sessões WhatsApp</CardTitle>
-          <CardDescription>Atualização automática em tempo real</CardDescription>
-          
-          <div className="flex gap-3 mt-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por empresa ou sessão..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border rounded-md bg-background"
-            >
-              <option value="all">Todos</option>
-              <option value="WORKING">Conectados</option>
-              <option value="SCAN_QR_CODE">Aguardando QR</option>
+      {/* Estatísticas em Tempo Real */}
+      <SessionStatistics />
+
+      {/* Grid com Histórico e Sessões */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SessionActivityLog limit={50} />
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Sessões WhatsApp</CardTitle>
+            <CardDescription>Atualização automática em tempo real</CardDescription>
+            
+            <div className="flex gap-3 mt-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por empresa ou sessão..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border rounded-md bg-background"
+              >
+                <option value="all">Todos</option>
+                <option value="WORKING">Conectados</option>
+                <option value="SCAN_QR_CODE">Aguardando QR</option>
               <option value="disconnected">Desconectados</option>
             </select>
           </div>
@@ -507,14 +515,23 @@ export default function WhatsAppDashboard() {
                       <span>Taxa de Sucesso</span>
                       <span>{metric.success_rate}%</span>
                     </div>
-                    <Progress value={metric.success_rate} />
-                  </div>
+                  <Progress value={metric.success_rate} />
                 </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              </div>
+            ))
+          )}
+        </div>
+      </CardContent>
+    </Card>
+      </div>
+
+      {selectedSession && (
+        <QRCodeModal
+          session={selectedSession}
+          open={!!selectedSession}
+          onClose={() => setSelectedSession(null)}
+        />
+      )}
     </div>
   )
 }
