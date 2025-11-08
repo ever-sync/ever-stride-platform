@@ -88,8 +88,22 @@ serve(async (req) => {
 
     if (!openaiResponse.ok) {
       const errorText = await openaiResponse.text()
-      console.error('Erro OpenAI:', openaiResponse.status, errorText)
-      throw new Error(`Erro OpenAI: ${openaiResponse.status}`)
+      console.error('Erro OpenAI detalhado:', {
+        status: openaiResponse.status,
+        statusText: openaiResponse.statusText,
+        body: errorText
+      })
+
+      // Tratamento específico de erros
+      if (openaiResponse.status === 429) {
+        throw new Error('Rate limit da OpenAI excedido. Verifique se: 1) A conta tem créditos 2) Não está excedendo o limite de requisições. Aguarde alguns segundos e tente novamente.')
+      } else if (openaiResponse.status === 401) {
+        throw new Error('API key da OpenAI inválida ou sem permissão')
+      } else if (openaiResponse.status === 400) {
+        throw new Error(`Requisição inválida: ${errorText}`)
+      }
+      
+      throw new Error(`Erro OpenAI ${openaiResponse.status}: ${errorText}`)
     }
 
     const openaiData = await openaiResponse.json()
