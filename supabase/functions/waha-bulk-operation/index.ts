@@ -28,11 +28,23 @@ serve(async (req) => {
       throw new Error('Missing required parameters');
     }
 
-    const wahaUrl = Deno.env.get('WAHA_API_URL');
-    const wahaApiKey = Deno.env.get('WAHA_API_KEY');
+    const wahaApiUrl = Deno.env.get('WAHA_API_URL') || Deno.env.get('WAHA_URL');
+    const wahaApiKey = Deno.env.get('WAHA_API_KEY') || Deno.env.get('WAHA_KEY');
 
-    if (!wahaUrl || !wahaApiKey) {
+    console.log('Bulk op WAHA env:', {
+      hasUrl: !!wahaApiUrl,
+      hasKey: !!wahaApiKey,
+      urlSample: wahaApiUrl ? wahaApiUrl.slice(0, 30) : null,
+    });
+
+    if (!wahaApiUrl || !wahaApiKey) {
       throw new Error('WAHA configuration missing');
+    }
+
+    // Normalize URL to include protocol
+    let normalizedUrl = wahaApiUrl;
+    if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
+      normalizedUrl = `https://${normalizedUrl}`;
     }
 
     // Get session details
@@ -49,7 +61,7 @@ serve(async (req) => {
     switch (operation) {
       case 'reconnect':
         // Start session via WAHA API
-        const reconnectResponse = await fetch(`${wahaUrl}/api/sessions/${session.session_name}/start`, {
+        const reconnectResponse = await fetch(`${normalizedUrl}/api/sessions/${session.session_name}/start`, {
           method: 'POST',
           headers: { 'X-Api-Key': wahaApiKey },
         });
@@ -68,7 +80,7 @@ serve(async (req) => {
 
       case 'disconnect':
         // Stop session via WAHA API
-        const disconnectResponse = await fetch(`${wahaUrl}/api/sessions/${session.session_name}/stop`, {
+        const disconnectResponse = await fetch(`${normalizedUrl}/api/sessions/${session.session_name}/stop`, {
           method: 'POST',
           headers: { 'X-Api-Key': wahaApiKey },
         });
@@ -87,7 +99,7 @@ serve(async (req) => {
 
       case 'refresh_qr':
         // Get new QR code
-        const qrResponse = await fetch(`${wahaUrl}/api/sessions/${session.session_name}/qr`, {
+        const qrResponse = await fetch(`${normalizedUrl}/api/sessions/${session.session_name}/qr`, {
           headers: { 'X-Api-Key': wahaApiKey },
         });
 

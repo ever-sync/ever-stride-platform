@@ -28,11 +28,23 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const wahaUrl = Deno.env.get('WAHA_API_URL');
-    const wahaApiKey = Deno.env.get('WAHA_API_KEY');
+    const wahaApiUrl = Deno.env.get('WAHA_API_URL') || Deno.env.get('WAHA_URL');
+    const wahaApiKey = Deno.env.get('WAHA_API_KEY') || Deno.env.get('WAHA_KEY');
 
-    if (!wahaUrl || !wahaApiKey) {
+    console.log('Health monitor WAHA env:', {
+      hasUrl: !!wahaApiUrl,
+      hasKey: !!wahaApiKey,
+      urlSample: wahaApiUrl ? wahaApiUrl.slice(0, 30) : null,
+    });
+
+    if (!wahaApiUrl || !wahaApiKey) {
       throw new Error('WAHA configuration missing');
+    }
+
+    // Normalize URL to include protocol
+    let normalizedUrl = wahaApiUrl;
+    if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
+      normalizedUrl = `https://${normalizedUrl}`;
     }
 
     // Get all active sessions
@@ -83,7 +95,7 @@ serve(async (req) => {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-          const response = await fetch(`${wahaUrl}/api/sessions/${session.session_name}`, {
+          const response = await fetch(`${normalizedUrl}/api/sessions/${session.session_name}`, {
             headers: { 'X-Api-Key': wahaApiKey },
             signal: controller.signal,
           });
