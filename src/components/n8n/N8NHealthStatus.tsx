@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, CheckCircle2, Clock, RefreshCw, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, RefreshCw, XCircle, Bell, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -33,6 +33,7 @@ export function N8NHealthStatus() {
   const [circuitStatus, setCircuitStatus] = useState<CircuitBreakerStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
+  const [testing, setTesting] = useState(false);
   const { toast } = useToast();
 
   const fetchHealthStatus = async () => {
@@ -121,6 +122,38 @@ export function N8NHealthStatus() {
         description: 'Unable to reset circuit breaker',
         variant: 'destructive'
       });
+    }
+  };
+
+  const testNotification = async () => {
+    setTesting(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-n8n-alert', {
+        body: {
+          status: 'down',
+          error: 'This is a test notification from the monitoring dashboard',
+          responseTime: 5000,
+          circuitBreakerState: 'OPEN',
+          reason: 'Manual test triggered',
+          isTest: true
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Test alert sent',
+        description: 'Check your email for the test notification'
+      });
+    } catch (error) {
+      console.error('Failed to send test notification:', error);
+      toast({
+        title: 'Test failed',
+        description: 'Unable to send test notification',
+        variant: 'destructive'
+      });
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -249,8 +282,26 @@ export function N8NHealthStatus() {
             onClick={performHealthCheck}
             disabled={checking}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${checking ? 'animate-spin' : ''}`} />
-            Check Now
+            {checking ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            {checking ? 'Checking...' : 'Check Now'}
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={testNotification}
+            disabled={testing}
+          >
+            {testing ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Bell className="h-4 w-4 mr-2" />
+            )}
+            {testing ? 'Sending...' : 'Test Alert'}
           </Button>
 
           {circuitStatus?.state === 'OPEN' && (

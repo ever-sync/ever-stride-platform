@@ -21,6 +21,7 @@ import type { N8NExecutionLog } from '@/types/n8n';
 import { format } from 'date-fns';
 import { ExecutionDetailsModal } from './ExecutionDetailsModal';
 import { N8NHealthStatus } from './N8NHealthStatus';
+import { CronJobMonitoring } from './CronJobMonitoring';
 
 export function N8NMonitoringDashboard() {
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
@@ -95,26 +96,35 @@ export function N8NMonitoringDashboard() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Monitoramento N8N</h1>
           <p className="text-muted-foreground">
-            Visão completa de workflows e execuções
+            Visão completa de workflows, execuções e jobs agendados
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)}>
-            <TabsList>
-              <TabsTrigger value="24h">24h</TabsTrigger>
-              <TabsTrigger value="7d">7d</TabsTrigger>
-              <TabsTrigger value="30d">30d</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Button variant="outline" size="sm" onClick={() => refetch()}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Atualizar
-          </Button>
         </div>
       </div>
 
-      {/* Health Status Widget */}
-      <N8NHealthStatus />
+      <Tabs defaultValue="overview" className="space-y-6">
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="cron">Jobs Agendados</TabsTrigger>
+          </TabsList>
+          <div className="flex items-center gap-2">
+            <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)}>
+              <TabsList>
+                <TabsTrigger value="24h">24h</TabsTrigger>
+                <TabsTrigger value="7d">7d</TabsTrigger>
+                <TabsTrigger value="30d">30d</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Atualizar
+            </Button>
+          </div>
+        </div>
+
+        <TabsContent value="overview" className="space-y-6">
+          {/* Health Status Widget */}
+          <N8NHealthStatus />
 
       {/* Metric Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -378,12 +388,18 @@ export function N8NMonitoringDashboard() {
         </CardContent>
       </Card>
 
-      {/* Execution Details Modal */}
-      <ExecutionDetailsModal
-        executionLog={selectedExecution}
-        open={detailsModalOpen}
-        onOpenChange={setDetailsModalOpen}
-      />
+          {/* Execution Details Modal */}
+          <ExecutionDetailsModal
+            executionLog={selectedExecution}
+            open={detailsModalOpen}
+            onOpenChange={setDetailsModalOpen}
+          />
+        </TabsContent>
+
+        <TabsContent value="cron">
+          <CronJobMonitoring />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

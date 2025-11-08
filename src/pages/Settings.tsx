@@ -1,7 +1,11 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { N8NNotificationSettings } from "@/components/n8n/N8NNotificationSettings";
+import { useIsSuperAdmin } from "@/hooks/useIsSuperAdmin";
 
 export default function Settings() {
+  const { isSuperAdmin } = useIsSuperAdmin();
+
   return (
     <div className="space-y-6">
       <div>
@@ -9,11 +13,15 @@ export default function Settings() {
         <p className="text-muted-foreground mt-1">Gerencie suas configurações</p>
       </div>
 
-      <Tabs defaultValue="ai" className="space-y-4">
+      <Tabs defaultValue="notifications" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="notifications">Notificações</TabsTrigger>
           <TabsTrigger value="ai">IA</TabsTrigger>
           <TabsTrigger value="billing">Faturamento</TabsTrigger>
         </TabsList>
+        <TabsContent value="notifications" className="space-y-4">
+          {isSuperAdmin && <N8NNotificationSettings />}
+        </TabsContent>
         <TabsContent value="ai">
           <Card>
             <CardHeader>
