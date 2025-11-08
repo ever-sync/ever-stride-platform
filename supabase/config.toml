@@ -1,43 +1,25 @@
 project_id = "dffhhforfwhgzdlrfzpc"
 
+# Public endpoint with API key validation - keep public
 [functions.search-knowledge]
 verify_jwt = false
 
-[functions.waha-session-create]
-verify_jwt = false
-
-[functions.waha-session-qr]
-verify_jwt = false
-
-[functions.waha-session-status]
-verify_jwt = false
-
-[functions.waha-send-message]
-verify_jwt = false
-
-[functions.waha-session-stop]
-verify_jwt = false
-
-[functions.n8n-workflow-create]
-verify_jwt = false
-
-[functions.n8n-workflow-delete]
-verify_jwt = false
-
-[functions.n8n-workflow-activate]
-verify_jwt = false
-
-[functions.ai-chat]
-verify_jwt = false
-
+# Webhook endpoint - must be public for external calls
+# TODO: Implement HMAC signature verification for security
 [functions.waha-webhook]
 verify_jwt = false
 
-[functions.ai-agent-chat]
-verify_jwt = false
-
-[functions.waha-sync-sessions]
-verify_jwt = false
-
-[functions.waha-health-check]
-verify_jwt = false
+# All other functions now require JWT authentication
+# Removed verify_jwt = false from:
+# - waha-session-create
+# - waha-session-qr  
+# - waha-session-status
+# - waha-session-stop
+# - waha-send-message
+# - n8n-workflow-create
+# - n8n-workflow-delete
+# - n8n-workflow-activate
+# - ai-chat
+# - ai-agent-chat
+# - waha-sync-sessions
+# - waha-health-check
