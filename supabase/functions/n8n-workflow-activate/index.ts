@@ -43,16 +43,42 @@ serve(async (req) => {
       timeout: 30000
     });
 
+    // First, GET the workflow to get the complete object
+    console.log('Fetching workflow details from N8N...');
+    const getResponse = await circuitBreaker.execute(async () => {
+      return await fetchWithRetry(
+        `${N8N_API_URL}/api/v1/workflows/${workflowId}`,
+        {
+          method: 'GET',
+          headers: {
+            'X-N8N-API-KEY': N8N_API_KEY,
+            'Content-Type': 'application/json'
+          }
+        },
+        2 // maxRetries
+      );
+    });
+
+    if (!getResponse.ok) {
+      const errorText = await getResponse.text();
+      console.error('N8N API GET error:', getResponse.status, errorText);
+      throw new Error(`Failed to fetch workflow: ${getResponse.statusText}`);
+    }
+
+    const workflowData = await getResponse.json();
+    console.log('Workflow fetched, updating active status...');
+
+    // Now PUT the complete workflow with updated active status
     const response = await circuitBreaker.execute(async () => {
       return await fetchWithRetry(
         `${N8N_API_URL}/api/v1/workflows/${workflowId}`,
         {
-          method: 'PATCH',
+          method: 'PUT',
           headers: {
             'X-N8N-API-KEY': N8N_API_KEY,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ active })
+          body: JSON.stringify({ ...workflowData, active })
         },
         3 // maxRetries
       );
@@ -60,9 +86,11 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('N8N API error:', response.status, errorText);
+      console.error('N8N API PUT error:', response.status, errorText);
       throw new Error(`Failed to ${active ? 'activate' : 'deactivate'} workflow: ${response.statusText}`);
     }
+
+    console.log(`Workflow ${active ? 'activated' : 'deactivated'} successfully`);
 
     return new Response(
       JSON.stringify({ success: true }),
