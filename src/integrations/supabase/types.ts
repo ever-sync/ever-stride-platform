@@ -1755,6 +1755,19 @@ export type Database = {
       }
     }
     Views: {
+      cron_job_monitoring: {
+        Row: {
+          active: boolean | null
+          end_time: string | null
+          execution_seconds: number | null
+          jobname: string | null
+          return_message: string | null
+          schedule: string | null
+          start_time: string | null
+          status: string | null
+        }
+        Relationships: []
+      }
       vw_custos_cliente_mensal: {
         Row: {
           agentes_usados: number | null
@@ -1945,6 +1958,20 @@ export type Database = {
           tenant_id: number
         }[]
       }
+      get_cron_jobs: {
+        Args: never
+        Returns: {
+          active: boolean
+          command: string
+          database: string
+          jobid: number
+          jobname: string
+          nodename: string
+          nodeport: number
+          schedule: string
+          username: string
+        }[]
+      }
       get_edge_function_stats: {
         Args: { p_function_name: string; p_hours?: number }
         Returns: {
@@ -2031,6 +2058,7 @@ export type Database = {
           similarity: number
         }[]
       }
+      trigger_n8n_health_check: { Args: never; Returns: string }
       update_n8n_workflow_stats: {
         Args: {
           p_execution_status: string
