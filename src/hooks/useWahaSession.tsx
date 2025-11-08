@@ -151,6 +151,14 @@ export function useWahaSession(clientId?: string) {
           .update({ status })
           .eq('id', session.id);
         
+        // Toast quando conectar com sucesso
+        if (status === 'working' && session.status !== 'working') {
+          toast({
+            title: 'WhatsApp Conectado! ✓',
+            description: 'Sessão conectada com sucesso. Pronto para enviar mensagens.',
+          });
+        }
+        
         setSession({ ...session, status });
       }
     } catch (error) {
