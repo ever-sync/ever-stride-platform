@@ -218,30 +218,42 @@ export type Database = {
       }
       chats: {
         Row: {
+          bot_paused: boolean | null
           created_at: string | null
           end_user_id: number | null
           id: number
           phone: string | null
           session_id: string | null
           tenant_id: number
+          transferred_at: string | null
+          transferred_by: string | null
+          transferred_to_human: boolean | null
           updated_at: string | null
         }
         Insert: {
+          bot_paused?: boolean | null
           created_at?: string | null
           end_user_id?: number | null
           id?: number
           phone?: string | null
           session_id?: string | null
           tenant_id: number
+          transferred_at?: string | null
+          transferred_by?: string | null
+          transferred_to_human?: boolean | null
           updated_at?: string | null
         }
         Update: {
+          bot_paused?: boolean | null
           created_at?: string | null
           end_user_id?: number | null
           id?: number
           phone?: string | null
           session_id?: string | null
           tenant_id?: number
+          transferred_at?: string | null
+          transferred_by?: string | null
+          transferred_to_human?: boolean | null
           updated_at?: string | null
         }
         Relationships: [
@@ -733,6 +745,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      quick_reply_templates: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          name: string
+          shortcut: string | null
+          tenant_id: number
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name: string
+          shortcut?: string | null
+          tenant_id: number
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name?: string
+          shortcut?: string | null
+          tenant_id?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quick_reply_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       relatorios_custos: {
         Row: {

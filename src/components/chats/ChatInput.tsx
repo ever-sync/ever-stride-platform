@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Send, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { QuickReplySelector } from "./QuickReplySelector";
 
 interface ChatInputProps {
   chatId: number;
@@ -16,6 +17,10 @@ export function ChatInput({ chatId, sessionId, phone, onMessageSent }: ChatInput
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const { toast } = useToast();
+
+  const handleQuickReplySelect = (content: string) => {
+    setMessage(content);
+  };
 
   const handleSend = async () => {
     if (!message.trim() || !sessionId) {
@@ -89,10 +94,13 @@ export function ChatInput({ chatId, sessionId, phone, onMessageSent }: ChatInput
   };
 
   return (
-    <div className="border-t bg-card p-4">
+    <div className="border-t bg-card p-4 space-y-2">
+      <div className="flex justify-end">
+        <QuickReplySelector onSelect={handleQuickReplySelect} />
+      </div>
       <div className="flex gap-2">
         <Textarea
-          placeholder="Digite sua mensagem..."
+          placeholder="Digite sua mensagem ou use /atalho para templates..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}

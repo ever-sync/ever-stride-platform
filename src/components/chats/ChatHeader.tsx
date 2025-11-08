@@ -2,15 +2,26 @@ import { ArrowLeft, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TagSelector } from "./TagSelector";
+import { TransferControl } from "./TransferControl";
 import { useNavigate } from "react-router-dom";
 
 interface ChatHeaderProps {
   phone: string;
   chatId: number;
   messageCount: number;
+  botPaused?: boolean;
+  transferredToHuman?: boolean;
+  onUpdate?: () => void;
 }
 
-export function ChatHeader({ phone, chatId, messageCount }: ChatHeaderProps) {
+export function ChatHeader({ 
+  phone, 
+  chatId, 
+  messageCount,
+  botPaused = false,
+  transferredToHuman = false,
+  onUpdate 
+}: ChatHeaderProps) {
   const navigate = useNavigate();
 
   return (
@@ -40,6 +51,13 @@ export function ChatHeader({ phone, chatId, messageCount }: ChatHeaderProps) {
             <Badge variant="secondary">
               {messageCount} {messageCount === 1 ? 'mensagem' : 'mensagens'}
             </Badge>
+            
+            <TransferControl 
+              chatId={chatId}
+              botPaused={botPaused}
+              transferredToHuman={transferredToHuman}
+              onUpdate={onUpdate || (() => {})}
+            />
             
             <TagSelector chatId={chatId} />
           </div>

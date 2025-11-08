@@ -7,6 +7,8 @@ import { ChatHeader } from "@/components/chats/ChatHeader";
 import { ChatMessageList } from "@/components/chats/ChatMessageList";
 import { ChatStatistics } from "@/components/chats/ChatStatistics";
 import { ChatInput } from "@/components/chats/ChatInput";
+import { MessageSearch } from "@/components/chats/MessageSearch";
+import { ExportDialog } from "@/components/chats/ExportDialog";
 import { Card } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import type { Chat } from "@/types/database";
@@ -75,13 +77,29 @@ export default function ChatDetail() {
     );
   }
 
+  const handleReload = () => {
+    loadChat();
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] space-y-4">
       <ChatHeader
         phone={chat.phone || "Desconhecido"}
         chatId={chat.id}
         messageCount={messages.length}
+        botPaused={chat.bot_paused || false}
+        transferredToHuman={chat.transferred_to_human || false}
+        onUpdate={handleReload}
       />
+      
+      <div className="flex items-center justify-between px-4">
+        <MessageSearch messages={messages} />
+        <ExportDialog 
+          data={messages} 
+          filename={`mensagens_${chat.phone}`}
+          type="messages"
+        />
+      </div>
       
       <ChatStatistics messages={messages} />
       

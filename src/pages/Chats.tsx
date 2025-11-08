@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, MessageSquare, Filter, X } from "lucide-react";
 import { TagManager } from "@/components/chats/TagManager";
+import { ExportDialog } from "@/components/chats/ExportDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Chat } from "@/types/database";
@@ -50,6 +51,7 @@ export default function Chats() {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [tagFilter, setTagFilter] = useState<string>("all");
+  const [botStatusFilter, setBotStatusFilter] = useState<string>("all");
   const [availableTags, setAvailableTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -66,86 +68,88 @@ export default function Chats() {
   const loadChats = async () => {
     if (!userSession?.tenant?.id) return;
 
-    try {
-      const { data, error } = await supabase
-        .from("chats")
-        .select(`
-          *,
-          waha_sessions(session_name),
-          end_users!chats_end_user_id_fkey(nome),
-          chat_tags_mapping(
-            chat_tags(id, name, color)
-          )
-        `)
-        .eq("tenant_id", userSession.tenant.id)
-        .order("created_at", { ascending: false })
-        .limit(200);
+      try {
+        const { data, error } = await supabase
+          .from("chats")
+          .select(`
+            *,
+            waha_sessions(session_name),
+            end_users!chats_end_user_id_fkey(nome),
+            chat_tags_mapping(
+              chat_tags(id, name, color)
+            )
+          `)
+          .eq("tenant_id", userSession.tenant.id)
+          .order("created_at", { ascending: false })
+          .limit(200);
 
-      if (error) throw error;
-      setChats(data as any || []);
-    } catch (error) {
-      console.error("Error loading chats:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (error) throw error;
+        setChats(data as any || []);
+      } catch (error) {
+        console.error("Error loading chats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const loadSessions = async () => {
-    if (!userSession?.tenant?.id) return;
+    const loadSessions = async () => {
+      if (!userSession?.tenant?.id) return;
 
-    try {
-      const { data, error } = await supabase
-        .from("waha_sessions")
-        .select("id, session_name")
-        .eq("tenant_id", userSession.tenant.id)
-        .order("session_name");
+      try {
+        const { data, error } = await supabase
+          .from("waha_sessions")
+          .select("id, session_name")
+          .eq("tenant_id", userSession.tenant.id)
+          .order("session_name");
 
-      if (error) throw error;
-      setSessions(data || []);
-    } catch (error) {
-      console.error("Error loading sessions:", error);
-    }
-  };
+        if (error) throw error;
+        setSessions(data || []);
+      } catch (error) {
+        console.error("Error loading sessions:", error);
+      }
+    };
 
-  const loadAgents = async () => {
-    if (!userSession?.tenant?.id) return;
+    const loadAgents = async () => {
+      if (!userSession?.tenant?.id) return;
 
-    try {
-      const { data, error } = await supabase
-        .from("agents")
-        .select("id, nome_agente")
-        .eq("tenant_id", userSession.tenant.id)
-        .order("nome_agente");
+      try {
+        const { data, error } = await supabase
+          .from("agents")
+          .select("id, nome_agente")
+          .eq("tenant_id", userSession.tenant.id)
+          .order("nome_agente");
 
-      if (error) throw error;
-      setAgents(data || []);
-    } catch (error) {
-      console.error("Error loading agents:", error);
-    }
-  };
+        if (error) throw error;
+        setAgents(data || []);
+      } catch (error) {
+        console.error("Error loading agents:", error);
+      }
+    };
 
-  const loadTags = async () => {
-    if (!userSession?.tenant?.id) return;
+    const loadTags = async () => {
+      if (!userSession?.tenant?.id) return;
 
-    try {
-      const { data, error } = await supabase
-        .from("chat_tags")
-        .select("id, name, color")
-        .eq("tenant_id", userSession.tenant.id)
-        .order("name");
+      try {
+        const { data, error } = await supabase
+          .from("chat_tags")
+          .select("id, name, color")
+          .eq("tenant_id", userSession.tenant.id)
+          .order("name");
 
-      if (error) throw error;
-      setAvailableTags(data || []);
-    } catch (error) {
-      console.error("Error loading tags:", error);
-    }
-  };
+        if (error) throw error;
+        setAvailableTags(data || []);
+      } catch (error) {
+        console.error("Error loading tags:", error);
+      }
+    };
+
 
   const clearFilters = () => {
     setSearch("");
     setSessionFilter("all");
     setAgentFilter("all");
     setTagFilter("all");
+    setBotStatusFilter("all");
     setDateFrom("");
     setDateTo("");
   };
@@ -163,6 +167,13 @@ export default function Chats() {
     const matchesTag = tagFilter === "all" || 
       chat.chat_tags_mapping?.some(mapping => mapping.chat_tags.id === tagFilter);
     
+    // Filtro por status do bot
+    const matchesBotStatus = 
+      botStatusFilter === "all" ||
+      (botStatusFilter === "active" && !chat.bot_paused && !chat.transferred_to_human) ||
+      (botStatusFilter === "paused" && chat.bot_paused && !chat.transferred_to_human) ||
+      (botStatusFilter === "transferred" && chat.transferred_to_human);
+    
     // Filtro por data
     let matchesDate = true;
     if (dateFrom || dateTo) {
@@ -179,7 +190,7 @@ export default function Chats() {
       }
     }
 
-    return matchesSearch && matchesSession && matchesTag && matchesDate;
+    return matchesSearch && matchesSession && matchesTag && matchesDate && matchesBotStatus;
   });
 
   return (
@@ -212,6 +223,11 @@ export default function Chats() {
             <Filter className="h-4 w-4 mr-2" />
             Filtros
           </Button>
+          <ExportDialog 
+            data={filteredChats} 
+            filename="conversas"
+            type="chats"
+          />
         </div>
 
         {showFilters && (
@@ -267,6 +283,20 @@ export default function Chats() {
                 </select>
               </div>
 
+              <div>
+                <label className="text-sm font-medium mb-2 block">Status do Bot</label>
+                <select
+                  value={botStatusFilter}
+                  onChange={(e) => setBotStatusFilter(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                >
+                  <option value="all">Todos os status</option>
+                  <option value="active">Bot Ativo</option>
+                  <option value="paused">Bot Pausado</option>
+                  <option value="transferred">Atend. Humano</option>
+                </select>
+              </div>
+
               <div className="flex items-end">
                 <Button
                   variant="ghost"
@@ -312,6 +342,16 @@ export default function Chats() {
                       {chat.waha_sessions?.session_name && (
                         <Badge variant="default" className="text-xs">
                           {chat.waha_sessions.session_name}
+                        </Badge>
+                      )}
+                      {chat.transferred_to_human && (
+                        <Badge variant="secondary" className="text-xs">
+                          🧑 Atend. Humano
+                        </Badge>
+                      )}
+                      {chat.bot_paused && !chat.transferred_to_human && (
+                        <Badge variant="outline" className="text-xs">
+                          ⏸️ Bot Pausado
                         </Badge>
                       )}
                       {chat.chat_tags_mapping?.map((mapping: any) => (
