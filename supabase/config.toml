@@ -2,3 +2,30 @@ project_id = "dffhhforfwhgzdlrfzpc"
 
 [functions.search-knowledge]
 verify_jwt = false
+
+[functions.waha-session-create]
+verify_jwt = false
+
+[functions.waha-session-qr]
+verify_jwt = false
+
+[functions.waha-session-status]
+verify_jwt = false
+
+[functions.waha-send-message]
+verify_jwt = false
+
+[functions.waha-session-stop]
+verify_jwt = false
+
+[functions.n8n-workflow-create]
+verify_jwt = false
+
+[functions.n8n-workflow-delete]
+verify_jwt = false
+
+[functions.n8n-workflow-activate]
+verify_jwt = false
+
+[functions.ai-chat]
+verify_jwt = false
