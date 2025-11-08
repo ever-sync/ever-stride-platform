@@ -28,20 +28,22 @@ serve(async (req) => {
     // Check if template already exists
     const { data: existing } = await supabase
       .from('n8n_workflow_templates')
-      .select('id')
+      .select('id, name')
       .eq('name', 'Atendimento Humanizado')
       .single();
 
     let result;
     if (existing) {
       // Update existing template
+      console.log('Template already exists, updating...');
       const { data, error } = await supabase
         .from('n8n_workflow_templates')
         .update({ 
-          template_json: templateJson, 
+          template_json: templateJson,
+          description: 'Template completo de atendimento humanizado com IA, transferências inteligentes para vendedores/grupos, pausar IA e avaliação de atendimento. Ideal para empresas que buscam um atendimento personalizado com múltiplos fluxos.',
           updated_at: new Date().toISOString() 
         })
-        .eq('name', 'Atendimento Humanizado')
+        .eq('id', existing.id)
         .select()
         .single();
 
