@@ -32,6 +32,8 @@ import {
   Smartphone,
   TrendingUp,
   CreditCard,
+  BarChart,
+  Plug,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo.png";
@@ -55,11 +57,11 @@ export function AppShell({ children }: AppShellProps) {
     { name: "WhatsApp", href: "/whatsapp-connection", icon: Smartphone },
     { name: "Uso de Tokens", href: "/token-usage", icon: TrendingUp },
     { name: "Planos", href: "/planos", icon: CreditCard },
-    { name: "Relatórios", href: "/reports", icon: FileText },
+    { name: "Relatórios", href: "/reports", icon: BarChart },
     { name: "Relatórios por Cliente", href: "/client-reports", icon: FileText },
     { name: "Configurações", href: "/settings", icon: Settings },
     { name: "Equipe", href: "/users", icon: Users },
-    { name: "Integrações", href: "/integrations", icon: Zap },
+    { name: "Integrações", href: "/integrations", icon: Plug },
   ]);
 
   useEffect(() => {
@@ -74,11 +76,11 @@ export function AppShell({ children }: AppShellProps) {
         { name: "WhatsApp", href: "/whatsapp-connection", icon: Smartphone },
         { name: "Uso de Tokens", href: "/token-usage", icon: TrendingUp },
         { name: "Planos", href: "/planos", icon: CreditCard },
-        { name: "Relatórios", href: "/reports", icon: FileText },
+        { name: "Relatórios", href: "/reports", icon: BarChart },
         { name: "Relatórios por Cliente", href: "/client-reports", icon: FileText },
         { name: "Configurações", href: "/settings", icon: Settings },
         { name: "Equipe", href: "/users", icon: Users },
-        { name: "Integrações", href: "/integrations", icon: Zap },
+        { name: "Integrações", href: "/integrations", icon: Plug },
       ]);
     }
   }, [isSuperAdmin]);
