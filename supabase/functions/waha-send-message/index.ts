@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { fetchWithRetry } from "../_shared/retry.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -36,7 +37,7 @@ serve(async (req) => {
       normalizedUrl = `https://${wahaApiUrl}`;
     }
 
-    const response = await fetch(`${normalizedUrl}/api/sendText`, {
+    const response = await fetchWithRetry(`${normalizedUrl}/api/sendText`, {
       method: 'POST',
       headers: {
         'X-Api-Key': wahaApiKey,
@@ -47,7 +48,7 @@ serve(async (req) => {
         chatId: chatId,
         text: text
       })
-    });
+    }, 3);
 
     if (!response.ok) {
       const errorText = await response.text();

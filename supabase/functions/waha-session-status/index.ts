@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { fetchWithRetry } from "../_shared/retry.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -36,11 +37,11 @@ serve(async (req) => {
       normalizedUrl = `https://${wahaApiUrl}`;
     }
 
-    const response = await fetch(`${normalizedUrl}/api/sessions/${sessionName}`, {
+    const response = await fetchWithRetry(`${normalizedUrl}/api/sessions/${sessionName}`, {
       headers: {
         'X-Api-Key': wahaApiKey
       }
-    });
+    }, 2);
 
     if (!response.ok) {
       return new Response(

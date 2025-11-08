@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { fetchWithRetry } from "../_shared/retry.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -53,7 +54,7 @@ serve(async (req) => {
       webhookUrl
     });
 
-    const response = await fetch(requestUrl, {
+    const response = await fetchWithRetry(requestUrl, {
       method: 'POST',
       headers: {
         'X-Api-Key': wahaApiKey,
@@ -68,7 +69,7 @@ serve(async (req) => {
           }]
         }
       })
-    });
+    }, 3);
 
     console.log('WAHA API Response:', {
       status: response.status,

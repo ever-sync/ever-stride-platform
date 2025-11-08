@@ -24,6 +24,7 @@ import WhatsAppConnection from "./pages/WhatsAppConnection";
 import TokenUsage from "./pages/TokenUsage";
 import Planos from "./pages/Planos";
 import TestAgentChat from "./pages/TestAgentChat";
+import WhatsAppTest from "./pages/WhatsAppTest";
 
 const queryClient = new QueryClient();
 
@@ -185,6 +186,16 @@ const App = () => (
                 <AuthGuard>
                   <AppShell>
                     <TestAgentChat />
+                  </AppShell>
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/whatsapp-test"
+              element={
+                <AuthGuard>
+                  <AppShell>
+                    <WhatsAppTest />
                   </AppShell>
                 </AuthGuard>
               }
