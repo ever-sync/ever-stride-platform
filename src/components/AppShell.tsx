@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsSuperAdmin } from "@/hooks/useIsSuperAdmin";
 import { useNotifications } from "@/hooks/useNotifications";
 import { N8NAlerts } from "@/components/n8n/N8NAlerts";
+import { AgentAlertsPopover } from "@/components/agents/AgentAlertsPopover";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TenantSelector } from "@/components/TenantSelector";
@@ -193,6 +194,7 @@ export function AppShell({ children }: AppShellProps) {
                 Nova mensagem
               </Badge>
             )}
+            <AgentAlertsPopover />
             <N8NAlerts />
             <Button
               variant="ghost"

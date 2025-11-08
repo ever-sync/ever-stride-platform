@@ -62,13 +62,31 @@ export function useAgentActions(agentId: string) {
     try {
       setLoading(true)
 
-      // TODO: Implementar chamada ao agente de teste
-      // Por enquanto, retorna dados mockados
+      const { data, error } = await supabase.functions.invoke('ai-agent-chat', {
+        body: {
+          agent_id: agentId,
+          message: message,
+          test_mode: true
+        }
+      })
+
+      if (error) throw error
+
+      if (!data.success) {
+        throw new Error(data.error || 'Erro ao testar agente')
+      }
+
+      toast({
+        title: 'Teste concluído',
+        description: 'Resposta recebida com sucesso'
+      })
+
       return {
-        response: 'Resposta do agente de teste',
-        tokens_used: 150,
-        custo_brl: 0.0015,
-        modelo: 'gpt-4o-mini'
+        response: data.response,
+        tokens_used: data.tokens_used,
+        custo_brl: data.custo_brl,
+        modelo: data.modelo,
+        provider: data.provider
       }
     } catch (error: any) {
       toast({
