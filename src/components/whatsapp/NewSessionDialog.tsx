@@ -11,8 +11,8 @@ import { QRCodeModal } from './QRCodeModal';
 
 export function NewSessionDialog() {
   const [open, setOpen] = useState(false);
-  const [selectedClient, setSelectedClient] = useState<string>('');
-  const [selectedAgent, setSelectedAgent] = useState<string>('');
+  const [selectedClient, setSelectedClient] = useState<string | undefined>(undefined);
+  const [selectedAgent, setSelectedAgent] = useState<string | undefined>(undefined);
   const [showQR, setShowQR] = useState(false);
   
   const { criarSession, connecting, session } = useWahaSession(selectedClient);
@@ -51,7 +51,7 @@ export function NewSessionDialog() {
     if (!selectedClient) return;
     
     try {
-      await criarSession(selectedAgent || undefined);
+      await criarSession(selectedAgent);
       setShowQR(true);
       setOpen(false);
     } catch (error) {
@@ -85,7 +85,7 @@ export function NewSessionDialog() {
                 </SelectTrigger>
                 <SelectContent>
                   {loadingClients ? (
-                    <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">Carregando...</div>
                   ) : (
                     clients?.map((client) => (
                       <SelectItem key={client.id} value={client.id}>
@@ -99,14 +99,14 @@ export function NewSessionDialog() {
 
             <div className="space-y-2">
               <Label>Agente (Opcional)</Label>
-              <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+              <Select value={selectedAgent} onValueChange={(value) => setSelectedAgent(value === 'none' ? undefined : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Nenhum agente" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum agente</SelectItem>
+                  <SelectItem value="none">Nenhum agente</SelectItem>
                   {loadingAgents ? (
-                    <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">Carregando...</div>
                   ) : (
                     agents?.map((agent) => (
                       <SelectItem key={agent.id} value={agent.id}>
