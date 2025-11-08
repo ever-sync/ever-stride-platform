@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { mapWahaStatusToDb } from "./waha-status-mapper";
 
 interface CreateSessionParams {
   clientId: string;
@@ -39,7 +40,7 @@ export class WAHAClient {
     });
 
     if (error) throw error;
-    return data.status;
+    return mapWahaStatusToDb(data.status);
   }
 
   async sendMessage(sessionName: string, chatId: string, text: string): Promise<void> {

@@ -9,7 +9,18 @@ export const WAHA_STATUS = {
   FAILED: 'FAILED',
 } as const;
 
-export type WahaStatus = typeof WAHA_STATUS[keyof typeof WAHA_STATUS];
+// Database status format (lowercase)
+export const DB_STATUS = {
+  DISCONNECTED: 'disconnected',
+  CONNECTING: 'connecting',
+  QR_CODE: 'qr_code',
+  CONNECTED: 'connected',
+  STOPPED: 'stopped',
+  FAILED: 'failed',
+  WORKING: 'working',
+} as const;
+
+export type WahaStatus = typeof WAHA_STATUS[keyof typeof WAHA_STATUS] | typeof DB_STATUS[keyof typeof DB_STATUS];
 
 async function wahaRequest(endpoint: string, options: RequestInit = {}) {
   const response = await fetch(`${WAHA_URL}${endpoint}`, {

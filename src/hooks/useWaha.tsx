@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { wahaAPI, WAHA_STATUS, WahaStatus } from '@/lib/waha';
+import { mapWahaStatusToDb } from '@/lib/waha-status-mapper';
 
 export function useWaha(sessionId: string | null) {
   const [status, setStatus] = useState<WahaStatus>('STOPPED');
@@ -14,9 +15,10 @@ export function useWaha(sessionId: string | null) {
 
     try {
       const statusAtual = await wahaAPI.verificarStatus(sessionId);
-      setStatus(statusAtual);
+      const mappedStatus = mapWahaStatusToDb(statusAtual) as WahaStatus;
+      setStatus(mappedStatus);
       
-      if (statusAtual === WAHA_STATUS.SCAN_QR_CODE) {
+      if (mappedStatus === 'qr_code') {
         const qr = await wahaAPI.obterQRCode(sessionId);
         setQrCode(qr);
       } else {
@@ -24,7 +26,7 @@ export function useWaha(sessionId: string | null) {
       }
     } catch (error) {
       console.error('Error verifying Waha status:', error);
-      setStatus('STOPPED');
+      setStatus('stopped');
     } finally {
       setLoading(false);
     }
@@ -38,7 +40,7 @@ export function useWaha(sessionId: string | null) {
       await verificarStatus();
     } catch (error) {
       console.error('Error starting Waha session:', error);
-      setStatus('FAILED');
+      setStatus('failed');
     }
   };
 

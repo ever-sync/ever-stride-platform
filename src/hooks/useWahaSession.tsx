@@ -4,6 +4,7 @@ import { toast } from '@/hooks/use-toast';
 import { WahaSession } from '@/types/waha';
 import { wahaClient } from '@/lib/waha-client';
 import { useAuth } from '@/hooks/useAuth';
+import { mapWahaStatusToDb } from '@/lib/waha-status-mapper';
 
 const MAX_RECONNECT_ATTEMPTS = 5;
 const INITIAL_RETRY_DELAY = 2000; // 2 segundos
@@ -83,7 +84,7 @@ export function useWahaSession(clientId?: string) {
           agent_id: agentId,
           tenant_id: tenantId,
           session_name: sessionData.session_name,
-          status: sessionData.status,
+          status: mapWahaStatusToDb(sessionData.status),
           qr_code: sessionData.qr,
           webhook_url: webhookUrl
         })
@@ -187,13 +188,14 @@ export function useWahaSession(clientId?: string) {
     setTimeout(async () => {
       try {
         const status = await wahaClient.getSessionStatus(session.session_name);
+        const mappedStatus = mapWahaStatusToDb(status);
         
-        if (status === 'working') {
+        if (mappedStatus === 'connected') {
           setRetryCount(0);
           await supabase
             .from('waha_sessions')
             .update({ 
-              status,
+              status: mappedStatus,
               reconnect_attempts: 0 
             })
             .eq('id', session.id);
@@ -207,7 +209,7 @@ export function useWahaSession(clientId?: string) {
             description: 'Sessão reconectada com sucesso após ' + (retryCount + 1) + ' tentativa(s)',
           });
           
-          setSession({ ...session, status, reconnect_attempts: 0 });
+          setSession({ ...session, status: mappedStatus, reconnect_attempts: 0 });
         } else {
           setRetryCount(prev => prev + 1);
           await supabase
@@ -229,14 +231,15 @@ export function useWahaSession(clientId?: string) {
 
     try {
       const status = await wahaClient.getSessionStatus(session.session_name);
+      const mappedStatus = mapWahaStatusToDb(status);
       
-      if (status !== session.status) {
+      if (mappedStatus !== session.status) {
         await supabase
           .from('waha_sessions')
-          .update({ status })
+          .update({ status: mappedStatus })
           .eq('id', session.id);
         
-        if (status === 'working' && session.status !== 'working') {
+        if (mappedStatus === 'connected' && session.status !== 'connected') {
           await logSessionAction(session.id, 'connected', 'success', {
             previous_status: session.status
           });
@@ -247,7 +250,7 @@ export function useWahaSession(clientId?: string) {
           });
           
           setRetryCount(0);
-        } else if (status === 'disconnected' && session.status === 'working') {
+        } else if (mappedStatus === 'disconnected' && session.status === 'connected') {
           await logSessionAction(session.id, 'disconnected', 'error', {
             unexpected: true
           }, 'Conexão perdida inesperadamente');
@@ -257,12 +260,12 @@ export function useWahaSession(clientId?: string) {
           }
         }
         
-        setSession({ ...session, status });
+        setSession({ ...session, status: mappedStatus });
       }
     } catch (error: any) {
       console.error('Erro ao atualizar status:', error);
       
-      if (session.status === 'working' && retryCount < MAX_RECONNECT_ATTEMPTS) {
+      if (session.status === 'connected' && retryCount < MAX_RECONNECT_ATTEMPTS) {
         attemptReconnect();
       }
     }

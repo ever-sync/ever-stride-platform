@@ -3,6 +3,26 @@ import { fetchWithRetry } from "../_shared/retry.ts";
 import { getCircuitBreaker } from "../_shared/circuit-breaker.ts";
 import { trackExecution } from "../_shared/metrics.ts";
 
+// Status mapping utility
+const WAHA_TO_DB_STATUS_MAP: Record<string, string> = {
+  'STARTING': 'connecting',
+  'SCAN_QR_CODE': 'qr_code',
+  'WORKING': 'connected',
+  'STOPPED': 'stopped',
+  'FAILED': 'failed',
+  'disconnected': 'disconnected',
+  'connecting': 'connecting',
+  'qr_code': 'qr_code',
+  'connected': 'connected',
+  'stopped': 'stopped',
+  'failed': 'failed',
+  'working': 'connected',
+};
+
+function mapWahaStatusToDb(wahaStatus: string): string {
+  return WAHA_TO_DB_STATUS_MAP[wahaStatus] || 'disconnected';
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -160,7 +180,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         session_name: data.name,
-        status: data.status,
+        status: mapWahaStatusToDb(data.status),
         qr: data.qr
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
