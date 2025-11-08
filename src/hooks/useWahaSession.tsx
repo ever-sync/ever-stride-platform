@@ -3,8 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { WahaSession } from '@/types/waha';
 import { wahaClient } from '@/lib/waha-client';
+import { useAuth } from '@/hooks/useAuth';
 
 export function useWahaSession(clientId?: string) {
+  const { userSession } = useAuth();
   const [session, setSession] = useState<WahaSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
@@ -47,12 +49,17 @@ export function useWahaSession(clientId?: string) {
       });
 
       // Salvar no banco
+      const tenantId = userSession?.tenant?.id;
+      if (!tenantId) {
+        throw new Error('Tenant ID não encontrado');
+      }
+
       const { data, error } = await supabase
         .from('waha_sessions')
         .insert({
           client_id: clientId,
           agent_id: agentId,
-          tenant_id: 1, // TODO: pegar do contexto
+          tenant_id: tenantId,
           session_name: sessionData.session_name,
           status: sessionData.status,
           qr_code: sessionData.qr,

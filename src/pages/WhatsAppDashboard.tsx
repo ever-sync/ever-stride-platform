@@ -4,8 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Activity, Zap, AlertCircle, CheckCircle, Clock, TrendingUp } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Activity, Zap, AlertCircle, CheckCircle, Clock, RefreshCw, Search, Power, QrCode } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { NewSessionDialog } from '@/components/whatsapp/NewSessionDialog'
+import { WAHAHealthIndicator } from '@/components/whatsapp/WAHAHealthIndicator'
+import { QRCodeModal } from '@/components/whatsapp/QRCodeModal'
+import QRCode from 'react-qr-code'
 
 type WahaSession = {
   id: string
@@ -55,6 +61,11 @@ export default function WhatsAppDashboard() {
   const [metrics, setMetrics] = useState<EdgeMetric[]>([])
   const [circuitBreakers, setCircuitBreakers] = useState<CircuitBreakerState[]>([])
   const [loading, setLoading] = useState(true)
+  const [syncing, setSyncing] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [selectedSession, setSelectedSession] = useState<WahaSession | null>(null)
+  const [showQR, setShowQR] = useState(false)
 
   // Carregar dados iniciais
   useEffect(() => {
@@ -157,6 +168,65 @@ export default function WhatsAppDashboard() {
     }
   }
 
+  const handleSyncSessions = async () => {
+    setSyncing(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('waha-sync-sessions')
+      
+      if (error) throw error
+      
+      toast({
+        title: 'Sincronização concluída',
+        description: `${data.updated} sessões atualizadas, ${data.errors} erros`,
+      })
+      
+      await loadSessions()
+    } catch (error: any) {
+      toast({
+        title: 'Erro na sincronização',
+        description: error.message,
+        variant: 'destructive',
+      })
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  const handleDisconnectSession = async (session: WahaSession) => {
+    try {
+      const { error } = await supabase.functions.invoke('waha-session-stop', {
+        body: { sessionName: session.session_name }
+      })
+      
+      if (error) throw error
+      
+      await supabase
+        .from('waha_sessions')
+        .update({ status: 'disconnected', disconnected_at: new Date().toISOString() })
+        .eq('id', session.id)
+      
+      toast({
+        title: 'Sessão desconectada',
+        description: `${session.session_name} foi desconectada`,
+      })
+      
+      await loadSessions()
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao desconectar',
+        description: error.message,
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const filteredSessions = sessions.filter(session => {
+    const matchesSearch = session.whatsapp_clients?.nome_empresa.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         session.session_name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === 'all' || session.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
       'WORKING': 'default',
@@ -206,9 +276,19 @@ export default function WhatsAppDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard WhatsApp - Tempo Real</h1>
-        <p className="text-muted-foreground">Monitoramento de sessões e métricas de performance</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard WhatsApp - Tempo Real</h1>
+          <p className="text-muted-foreground">Monitoramento de sessões e métricas de performance</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <WAHAHealthIndicator />
+          <Button onClick={handleSyncSessions} disabled={syncing} variant="outline">
+            <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
+            Sincronizar
+          </Button>
+          <NewSessionDialog />
+        </div>
       </div>
 
       {/* Resumo de Sessões */}
@@ -247,25 +327,95 @@ export default function WhatsAppDashboard() {
       {/* Sessões WhatsApp */}
       <Card>
         <CardHeader>
-          <CardTitle>Sessões WhatsApp Ativas</CardTitle>
+          <CardTitle>Sessões WhatsApp</CardTitle>
           <CardDescription>Atualização automática em tempo real</CardDescription>
+          
+          <div className="flex gap-3 mt-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por empresa ou sessão..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border rounded-md bg-background"
+            >
+              <option value="all">Todos</option>
+              <option value="WORKING">Conectados</option>
+              <option value="SCAN_QR_CODE">Aguardando QR</option>
+              <option value="disconnected">Desconectados</option>
+            </select>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {sessions.length === 0 ? (
+            {filteredSessions.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhuma sessão encontrada</p>
             ) : (
-              sessions.map((session) => (
-                <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{session.whatsapp_clients?.nome_empresa}</span>
-                      {getStatusBadge(session.status)}
+              filteredSessions.map((session) => (
+                <div key={session.id} className="p-4 border rounded-lg space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{session.whatsapp_clients?.nome_empresa}</span>
+                        {getStatusBadge(session.status)}
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">{session.session_name}</p>
+                      {session.phone_number && (
+                        <p className="text-sm text-muted-foreground">{session.phone_number}</p>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">{session.session_name}</p>
+                    <div className="flex gap-2">
+                      {(session.status === 'SCAN_QR_CODE' || session.status === 'qr_code') && session.qr_code && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedSession(session)
+                            setShowQR(true)
+                          }}
+                        >
+                          <QrCode className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {session.status === 'WORKING' && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDisconnectSession(session)}
+                        >
+                          <Power className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-right text-sm text-muted-foreground">
-                    {session.last_activity ? new Date(session.last_activity).toLocaleString() : 'N/A'}
+
+                  {(session.status === 'SCAN_QR_CODE' || session.status === 'qr_code') && session.qr_code && (
+                    <div className="flex justify-center p-4 bg-white rounded-lg">
+                      <QRCode value={session.qr_code} size={150} />
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-3 gap-4 text-sm pt-3 border-t">
+                    <div>
+                      <p className="text-muted-foreground">Enviadas</p>
+                      <p className="font-medium">{session.total_messages_sent || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Recebidas</p>
+                      <p className="font-medium">{session.total_messages_received || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Última atividade</p>
+                      <p className="font-medium">
+                        {session.last_activity ? new Date(session.last_activity).toLocaleTimeString() : 'N/A'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))
@@ -273,6 +423,17 @@ export default function WhatsAppDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {selectedSession && (
+        <QRCodeModal
+          session={selectedSession}
+          open={showQR}
+          onClose={() => {
+            setShowQR(false)
+            setSelectedSession(null)
+          }}
+        />
+      )}
 
       {/* Circuit Breakers */}
       {circuitBreakers.length > 0 && (
