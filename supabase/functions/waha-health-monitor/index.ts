@@ -28,7 +28,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const wahaUrl = Deno.env.get('WAHA_URL');
+    const wahaUrl = Deno.env.get('WAHA_API_URL');
     const wahaApiKey = Deno.env.get('WAHA_API_KEY');
 
     if (!wahaUrl || !wahaApiKey) {
