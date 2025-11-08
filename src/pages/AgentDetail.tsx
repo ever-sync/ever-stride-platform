@@ -1,7 +1,8 @@
-import { useParams } from 'react-router-dom'
+import { useParams, Navigate } from 'react-router-dom'
 import { AppShell } from '@/components/AppShell'
 import { useAgentMonitoring } from '@/hooks/useAgentMonitoring'
 import { useAgentActions } from '@/hooks/useAgentActions'
+import { isValidUUID } from '@/lib/uuid-validator'
 import { AgentMonitoringDashboard } from '@/components/agents/AgentMonitoringDashboard'
 import { AgentAnalytics } from '@/components/agents/AgentAnalytics'
 import { PromptVersionManager } from '@/components/agents/PromptVersionManager'
@@ -26,6 +27,12 @@ import { useState } from 'react'
 
 export default function AgentDetailPage() {
   const { agentId } = useParams<{ agentId: string }>()
+  
+  // Validar UUID antes de tentar buscar dados
+  if (!isValidUUID(agentId)) {
+    return <Navigate to="/404" replace />
+  }
+  
   const { data, loading, refresh } = useAgentMonitoring(agentId!)
   const { 
     loading: actionLoading, 

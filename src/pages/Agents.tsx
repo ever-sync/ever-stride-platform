@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AppShell } from '@/components/AppShell'
 import { useAgentsV2 } from '@/hooks/useAgentsV2'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,7 @@ import {
 import { Link } from 'react-router-dom'
 
 export default function AgentsPage() {
+  const navigate = useNavigate()
   const { agents, loading } = useAgentsV2()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -42,7 +44,7 @@ export default function AgentsPage() {
           <h1 className="text-3xl font-bold">Agentes</h1>
           <p className="text-muted-foreground">Gerencie seus agentes de IA</p>
         </div>
-        <Button onClick={() => window.location.href = '/agents/new'}>
+        <Button onClick={() => navigate('/agents/new')}>
           <Plus className="h-4 w-4 mr-2" />
           Novo Agente
         </Button>
@@ -238,7 +240,7 @@ export default function AgentsPage() {
               <div className="text-center py-12">
                 <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">Nenhum agente encontrado</p>
-                <Button className="mt-4" onClick={() => window.location.href = '/agents/new'}>
+                <Button className="mt-4" onClick={() => navigate('/agents/new')}>
                   <Plus className="h-4 w-4 mr-2" />
                   Criar Primeiro Agente
                 </Button>

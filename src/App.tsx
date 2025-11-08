@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import Agents from "./pages/Agents";
+import AgentCreate from "./pages/AgentCreate";
 import AgentDetail from "./pages/AgentDetail";
 import AgentEdit from './pages/AgentEdit'
 import AgentComparison from './pages/AgentComparison'
@@ -90,19 +91,21 @@ const App = () => (
               }
             />
             <Route
-              path="/agents/:agentId/monitoring"
+              path="/agents/new"
               element={
                 <AuthGuard>
-                  <AgentMonitoring />
+                  <AppShell>
+                    <AgentCreate />
+                  </AppShell>
                 </AuthGuard>
               }
             />
             <Route
-              path="/agents/:agentId"
+              path="/agents/comparison"
               element={
                 <AuthGuard>
                   <AppShell>
-                    <AgentDetail />
+                    <AgentComparison />
                   </AppShell>
                 </AuthGuard>
               }
@@ -118,11 +121,19 @@ const App = () => (
               }
             />
             <Route
-              path="/agents/comparison"
+              path="/agents/:agentId/monitoring"
+              element={
+                <AuthGuard>
+                  <AgentMonitoring />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/agents/:agentId"
               element={
                 <AuthGuard>
                   <AppShell>
-                    <AgentComparison />
+                    <AgentDetail />
                   </AppShell>
                 </AuthGuard>
               }

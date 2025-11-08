@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { AppShell } from '@/components/AppShell'
+import { isValidUUID } from '@/lib/uuid-validator'
 import { AgentMonitoringDashboard } from '@/components/agents/AgentMonitoringDashboard'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
@@ -8,6 +9,11 @@ import { ArrowLeft } from 'lucide-react'
 export default function AgentMonitoring() {
   const { agentId } = useParams<{ agentId: string }>()
   const navigate = useNavigate()
+
+  // Validar UUID
+  if (!isValidUUID(agentId)) {
+    return <Navigate to="/404" replace />
+  }
 
   if (!agentId) {
     return (
