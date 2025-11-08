@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { loadCarrosTemplateToDatabase } from "@/lib/load-template-helper";
+import { loadAtendimentoHumanizadoTemplateToDatabase } from "@/lib/load-atendimento-humanizado-helper";
 import { toast } from "sonner";
 
 export default function Integrations() {
@@ -45,6 +46,20 @@ export default function Integrations() {
       setLoadingTemplate(true);
       await loadCarrosTemplateToDatabase();
       toast.success("Template de Carros carregado com sucesso!");
+      reload(); // Reload workflows and templates
+    } catch (error) {
+      console.error("Error loading template:", error);
+      toast.error("Erro ao carregar template");
+    } finally {
+      setLoadingTemplate(false);
+    }
+  };
+
+  const handleLoadAtendimentoHumanizadoTemplate = async () => {
+    try {
+      setLoadingTemplate(true);
+      await loadAtendimentoHumanizadoTemplateToDatabase();
+      toast.success("Template de Atendimento Humanizado carregado com sucesso!");
       reload(); // Reload workflows and templates
     } catch (error) {
       console.error("Error loading template:", error);
@@ -86,18 +101,27 @@ export default function Integrations() {
             disabled={loadingTemplate}
           >
             <Upload className="mr-2 h-4 w-4" />
-            {loadingTemplate ? "Carregando..." : "Carregar Template Carros"}
+            {loadingTemplate ? "Carregando..." : "Template Carros"}
+          </Button>
+          <Button 
+            variant="secondary" 
+            size="sm"
+            onClick={handleLoadAtendimentoHumanizadoTemplate}
+            disabled={loadingTemplate}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            {loadingTemplate ? "Carregando..." : "Template Humanizado"}
           </Button>
           <Button asChild variant="outline" size="sm">
             <Link to="/n8n-monitoring">
               <Activity className="mr-2 h-4 w-4" />
-              Ver Dashboard de Monitoramento
+              Monitoring
             </Link>
           </Button>
           <Button asChild variant="outline" size="sm">
             <a href={`${n8nUrl}/workflow/new`} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="mr-2 h-4 w-4" />
-              Criar Workflow no N8N
+              N8N Editor
             </a>
           </Button>
         </div>

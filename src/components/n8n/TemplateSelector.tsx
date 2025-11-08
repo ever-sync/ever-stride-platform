@@ -50,12 +50,14 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   
-  // Carros template specific fields
-  const [scriptAtendimento, setScriptAtendimento] = useState("Olá! Sou a Amanda, assistente virtual da concessionária. Como posso ajudar você hoje?");
+  // Template specific customization fields
+  const [scriptAtendimento, setScriptAtendimento] = useState("");
+  const [saudacao, setSaudacao] = useState("");
   const [codigoPausar, setCodigoPausar] = useState("PAUSAR_ATENDIMENTO");
   const [codigoVendedor, setCodigoVendedor] = useState("TRANSFERIR_VENDEDOR");
   const [codigoGrupo, setCodigoGrupo] = useState("TRANSFERIR_GRUPO");
   const [codigoVerificarSistema, setCodigoVerificarSistema] = useState("CONSULTAR_ESTOQUE");
+  const [codigoAvaliacao, setCodigoAvaliacao] = useState("AVALIACAO");
   
   const { createFromTemplate, operationLoading } = useN8NWorkflows();
   const { agentes, loading: loadingAgents } = useAgents();
@@ -93,16 +95,27 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
     }
 
     try {
-      // Prepare customizations if it's the Carros template
-      const customizations = selectedTemplate?.name.includes('Carros') 
-        ? {
-            script_atendimento: scriptAtendimento,
-            codigo_pausar_ia: codigoPausar,
-            codigo_transferir_vendedor: codigoVendedor,
-            codigo_transferir_grupo: codigoGrupo,
-            codigo_verificar_sistema: codigoVerificarSistema
-          }
-        : undefined;
+      // Prepare customizations based on template type
+      let customizations = undefined;
+      
+      if (selectedTemplate?.name.includes('Carros')) {
+        customizations = {
+          script_atendimento: scriptAtendimento,
+          codigo_pausar_ia: codigoPausar,
+          codigo_transferir_vendedor: codigoVendedor,
+          codigo_transferir_grupo: codigoGrupo,
+          codigo_verificar_sistema: codigoVerificarSistema
+        };
+      } else if (selectedTemplate?.name.includes('Atendimento Humanizado')) {
+        customizations = {
+          script_atendimento: scriptAtendimento,
+          saudacao: saudacao,
+          codigo_pausar_ia: codigoPausar,
+          codigo_transferir_vendedor: codigoVendedor,
+          codigo_transferir_grupo: codigoGrupo,
+          codigo_avaliacao: codigoAvaliacao
+        };
+      }
 
       await createFromTemplate(
         selectedTemplate.id,
@@ -182,7 +195,7 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
             />
           </div>
 
-          {/* Carros template specific fields */}
+          {/* Template-specific configuration fields */}
           {selectedTemplate?.name.includes('Carros') && (
             <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
               <h4 className="font-semibold text-sm flex items-center gap-2">
@@ -238,6 +251,78 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
                     placeholder="CONSULTAR_ESTOQUE"
                     value={codigoVerificarSistema}
                     onChange={(e) => setCodigoVerificarSistema(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {selectedTemplate?.name.includes('Atendimento Humanizado') && (
+            <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+              <h4 className="font-semibold text-sm flex items-center gap-2">
+                🤝 Configurações do Atendimento Humanizado
+              </h4>
+              
+              <div className="space-y-2">
+                <Label htmlFor="saudacao">Saudação Inicial</Label>
+                <Textarea
+                  id="saudacao"
+                  placeholder="Olá! Tudo bem? Seja bem-vindo(a)..."
+                  rows={2}
+                  value={saudacao}
+                  onChange={(e) => setSaudacao(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="script-humanizado">Script de Atendimento</Label>
+                <Textarea
+                  id="script-humanizado"
+                  placeholder="Você é um assistente humanizado. Seja empático, educado e ajude o cliente..."
+                  rows={4}
+                  value={scriptAtendimento}
+                  onChange={(e) => setScriptAtendimento(e.target.value)}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="codigo-pausar-h">Código Pausar IA</Label>
+                  <Input
+                    id="codigo-pausar-h"
+                    placeholder="PAUSAR_ATENDIMENTO"
+                    value={codigoPausar}
+                    onChange={(e) => setCodigoPausar(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="codigo-vendedor-h">Código Transferir Vendedor</Label>
+                  <Input
+                    id="codigo-vendedor-h"
+                    placeholder="TRANSFERIR_VENDEDOR"
+                    value={codigoVendedor}
+                    onChange={(e) => setCodigoVendedor(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="codigo-grupo-h">Código Transferir Grupo</Label>
+                  <Input
+                    id="codigo-grupo-h"
+                    placeholder="TRANSFERIR_GRUPO"
+                    value={codigoGrupo}
+                    onChange={(e) => setCodigoGrupo(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="codigo-avaliacao">Código Avaliação</Label>
+                  <Input
+                    id="codigo-avaliacao"
+                    placeholder="AVALIACAO"
+                    value={codigoAvaliacao}
+                    onChange={(e) => setCodigoAvaliacao(e.target.value)}
                   />
                 </div>
               </div>
@@ -348,7 +433,7 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
                   {template.description}
                 </p>
                 
-                {/* Lista de funcionalidades para template de Carros */}
+                {/* Lista de funcionalidades específicas por template */}
                 {template.name.includes('Carros') && (
                   <div className="mt-3 space-y-1">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -362,6 +447,23 @@ export function TemplateSelector({ templates, onSelect }: TemplateSelectorProps)
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <CheckCircle2 className="h-3 w-3 text-green-500" />
                       Transferência inteligente para vendedores
+                    </div>
+                  </div>
+                )}
+                
+                {template.name.includes('Atendimento Humanizado') && (
+                  <div className="mt-3 space-y-1">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                      Múltiplos fluxos de atendimento
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                      Transferência para vendedor/grupo
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                      Sistema de avaliação integrado
                     </div>
                   </div>
                 )}

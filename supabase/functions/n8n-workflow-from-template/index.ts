@@ -35,13 +35,14 @@ const normalizeN8nUrl = (url: string): string => {
   return url;
 };
 
-// Function to customize Carros template with dynamic agent configuration
-const customizeCarrosTemplate = (
+// Function to customize templates with dynamic agent configuration
+const customizeTemplate = (
   templateJson: any,
   customizations: any,
-  agentId: string
+  agentId: string,
+  templateName: string
 ): any => {
-  console.log('Customizing Carros template with:', customizations);
+  console.log(`Customizing ${templateName} template with:`, customizations);
   
   const customized = JSON.parse(JSON.stringify(templateJson));
   
@@ -72,10 +73,16 @@ const customizeCarrosTemplate = (
       // Keep dynamic references to database fields for real-time updates
       // Only replace if explicit customization is provided
       if (customizations.script_atendimento) {
-        // If custom script provided, use it; otherwise keep DB reference
         systemMessage = systemMessage.replace(
           /\{\{ \$\('Config-IA'\)\.item\.json\.Script \}\}/g,
           customizations.script_atendimento
+        );
+      }
+      
+      if (customizations.saudacao) {
+        systemMessage = systemMessage.replace(
+          /\{\{ \$\('Config-IA'\)\.item\.json\.Saudacao \}\}/g,
+          customizations.saudacao
         );
       }
       
@@ -97,6 +104,13 @@ const customizeCarrosTemplate = (
         systemMessage = systemMessage.replace(
           /\{\{ \$\('Config-IA'\)\.item\.json\.PausarIA \}\}/g,
           customizations.codigo_pausar_ia
+        );
+      }
+      
+      if (customizations.codigo_avaliacao) {
+        systemMessage = systemMessage.replace(
+          /\{\{ \$\('Config-IA'\)\.item\.json\['Avaliação'\] \}\}/g,
+          customizations.codigo_avaliacao
         );
       }
       
@@ -186,13 +200,16 @@ serve(async (req) => {
     
     let workflowJson = template.template_json;
     
-    // Se for o template de Carros, personalizar com as customizações
-    if (template.name.includes('Carros') || template.name.includes('EstoqueCar')) {
-      console.log('Detected Carros template, applying customizations');
-      workflowJson = customizeCarrosTemplate(
+    // Apply customizations for templates that support it
+    if (template.name.includes('Carros') || 
+        template.name.includes('EstoqueCar') || 
+        template.name.includes('Atendimento Humanizado')) {
+      console.log(`Detected customizable template: ${template.name}, applying customizations`);
+      workflowJson = customizeTemplate(
         workflowJson, 
         params.customizations || {}, 
-        params.agentId
+        params.agentId,
+        template.name
       );
     }
     

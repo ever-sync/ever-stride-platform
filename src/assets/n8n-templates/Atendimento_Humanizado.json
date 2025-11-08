@@ -1,0 +1,3648 @@
+{
+  "name": "Atendimento Humanizado",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=MENSAGEM ATUAL:\n{{ $('mensagemcompleta').item.json.mensagecompleta }}\n\nRESUMO DO LEAD ANTIGO:\n{{ $json.resumo_lead }}",
+        "options": {
+          "systemMessage": "=## Nome do agente:\nOlá! Sou a(o) {{ $('Config-IA').item.json.nome_agente }}\n## Personalinalidade\n\n#Saudacao\n{{ $('Config-IA').item.json.Saudacao }}\n\n\n\n### CODIGOS DE ATENDIMENTOS:\nTransferir grupo {{ $('Config-IA').item.json['Transferir Grupo'] }}\nTransferir vendedor {{ $('Config-IA').item.json['Transferir Vendedor'] }}\nAvaliacao de atendimento {{ $('Config-IA').item.json['Avaliação'] }}\n\n\n{{ $('Config-IA').item.json.Script }}"
+        }
+      },
+      "id": "583e9817-905e-40aa-80d0-71bbee1f4b2a",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -2192,
+        2880
+      ],
+      "executeOnce": false,
+      "notesInFlow": false,
+      "retryOnFail": false,
+      "typeVersion": 2.2,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "2aa763f7-cf04-44e7-9bbb-8f8de823aef8",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "leftValue": "={{ $('Nome agent Amanda1').item.json.Resposta }}",
+                    "rightValue": "={{ $('Config-IA').item.json.PausarIA }}"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Atendimento Finalizado"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "8c0a18c7-74a9-4453-b1cc-9b9321962fd0",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "leftValue": "={{ $('Nome agent Amanda1').item.json.Resposta }}",
+                    "rightValue": "={{ $('Dados Cliente').item.json['Veirifcar no sistema'] }}"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Simulacao"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "4fa1016e-8934-45ea-b17f-34bb07697285",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "leftValue": "={{ $('Nome agent Amanda1').item.json.Resposta }}",
+                    "rightValue": "={{ $('Config-IA').item.json['Transferir Vendedor'] }}"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "transfeir vendedor"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "0611eca1-95a7-48a7-851b-24dc1a0bc6a9",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "leftValue": "={{ $('Nome agent Amanda1').item.json.Resposta }}",
+                    "rightValue": "={{ $('Config-IA').item.json['Transferir Grupo'] }}"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Grupo"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "d234e327-39f7-4951-98ae-bde7ae792654",
+      "name": "Switch6",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -944,
+        2832
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "chats",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone",
+              "condition": "eq",
+              "keyValue": "={{ $('Dados Cliente').item.json.telefone }}"
+            },
+            {
+              "keyName": "tenant_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get a row3').item.json.tenant_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "updated_at",
+              "fieldValue": "={{ $now }}"
+            }
+          ]
+        }
+      },
+      "id": "87413685-fdcf-47b0-be35-34e7486eee7e",
+      "name": "Atualiza CHAT Supabase1",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        -928,
+        2448
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "fJRkH98dmQA0w9Lb",
+          "name": "Supabase - Empresa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "dados_cliente",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telefone",
+              "condition": "eq",
+              "keyValue": "={{ $('Entrada de Contato').item.json.telefone }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "atendimento_ia",
+              "fieldValue": "=pause"
+            }
+          ]
+        }
+      },
+      "id": "3dd0d2cf-9dbc-4f55-84d7-a61d297c070d",
+      "name": "Update a row1",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        -704,
+        3408
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "supabaseApi": {
+          "id": "QIBVbkM6soohoF5E",
+          "name": "Supabase - Estoque Car"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "640dd5f6-2039-4053-b538-aa6885d1df76",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        -32,
+        2448
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "chats",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone",
+              "keyValue": "={{ $('Dados Cliente').item.json.telefone }}"
+            },
+            {
+              "keyName": "tenant_id",
+              "keyValue": "={{ $('Get a row3').item.json.tenant_id }}"
+            }
+          ]
+        }
+      },
+      "id": "159f0431-8378-47c3-b37f-744e776104b8",
+      "name": "Busca Telefone1",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        -704,
+        2448
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "fJRkH98dmQA0w9Lb",
+          "name": "Supabase - Empresa"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "tableId": "chats",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $('Dados Cliente').item.json.telefone }}"
+            },
+            {
+              "fieldId": "created_at",
+              "fieldValue": "={{ $now}}"
+            },
+            {
+              "fieldId": "tenant_id",
+              "fieldValue": "={{ $('Get a row3').item.json.tenant_id }}"
+            }
+          ]
+        }
+      },
+      "id": "8d389da0-0176-4700-83b5-4c80465d6c99",
+      "name": "Adiciona CHAT supabase1",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        -256,
+        2352
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "supabaseApi": {
+          "id": "fJRkH98dmQA0w9Lb",
+          "name": "Supabase - Empresa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "chats",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone",
+              "condition": "eq",
+              "keyValue": "={{ $('Dados Cliente').item.json.telefone }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "updated_at",
+              "fieldValue": "={{ $now }}"
+            },
+            {
+              "fieldId": "tenant_id",
+              "fieldValue": "={{ $('Get a row3').item.json.tenant_id }}"
+            }
+          ]
+        }
+      },
+      "id": "5853cb20-4a77-492b-a369-496d74f700a8",
+      "name": "Atualiza CHAT Supabase2",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        -256,
+        2544
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "fJRkH98dmQA0w9Lb",
+          "name": "Supabase - Empresa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "chat_messages",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $json.phone }}"
+            },
+            {
+              "fieldId": "nomewpp",
+              "fieldValue": "={{ $('Dados Cliente').item.json.Name }}"
+            },
+            {
+              "fieldId": "bot_message",
+              "fieldValue": "={{ $('AI Agent').item.json.output }}"
+            },
+            {
+              "fieldId": "user_message",
+              "fieldValue": "={{ $('mensagemcompleta').item.json.Redis2 }}"
+            },
+            {
+              "fieldId": "created_at",
+              "fieldValue": "={{ $now}}"
+            }
+          ]
+        }
+      },
+      "id": "d1563f35-7c99-4737-ae3c-79530575921d",
+      "name": "Cria Histórico Supabase1",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        192,
+        2448
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "supabaseApi": {
+          "id": "fJRkH98dmQA0w9Lb",
+          "name": "Supabase - Empresa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "defac08a-6745-422b-bb05-90da9f47d91b",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              },
+              "leftValue": "={{ $('Busca Telefone1').last().json.values() }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "42f45c25-8fb2-4600-a386-f814498e1ad1",
+      "name": "If7",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -480,
+        2448
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "delete from chat_messages",
+        "options": {}
+      },
+      "id": "2e47ad34-9102-4785-b3a3-593749f397f8",
+      "name": "Deleta Conteúdo Chat_Messages",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        -6208,
+        2464
+      ],
+      "typeVersion": 2.5,
+      "credentials": {
+        "postgres": {
+          "id": "b3CY39ryjVbVLofl",
+          "name": "Postgres - Estoque Car"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "delete from dados_cliente",
+        "options": {}
+      },
+      "id": "0fd0adb8-3f0f-47ca-bdec-0779a4d65add",
+      "name": "Deleta Conteúdo Dados Cliente",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        -5760,
+        2464
+      ],
+      "typeVersion": 2.5,
+      "credentials": {
+        "postgres": {
+          "id": "b3CY39ryjVbVLofl",
+          "name": "Postgres - Estoque Car"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "delete from chats",
+        "options": {}
+      },
+      "id": "8ae2dfae-76d1-49d1-901f-b9a4c63ccf0d",
+      "name": "Deleta Conteúdo Chats",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        -6000,
+        2464
+      ],
+      "typeVersion": 2.5,
+      "credentials": {
+        "postgres": {
+          "id": "b3CY39ryjVbVLofl",
+          "name": "Postgres - Estoque Car"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "delete from n8n_chat_histories",
+        "options": {}
+      },
+      "id": "c2541024-45bb-4153-8d9a-d7b1eec86569",
+      "name": "Deleta Histórico",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        -5520,
+        2464
+      ],
+      "typeVersion": 2.5,
+      "credentials": {
+        "postgres": {
+          "id": "b3CY39ryjVbVLofl",
+          "name": "Postgres - Estoque Car"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "n8n_chat_histories",
+        "limit": 20,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Update a row1').item.json.telefone }}"
+            }
+          ]
+        }
+      },
+      "id": "b05cb453-08a7-4201-acdd-f0b142b67570",
+      "name": "ListMessages-Supabase2",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        192,
+        3408
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "QIBVbkM6soohoF5E",
+          "name": "Supabase - Estoque Car"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Entrada de Contato').item.json.session }}",
+        "chatId": "=120363421906516151@g.us",
+        "text": "={{ $json.output }}",
+        "requestOptions": {}
+      },
+      "id": "14e9cc99-09b6-46f6-b9a0-2e9394b108a7",
+      "name": "Send a text message",
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "position": [
+        1440,
+        3408
+      ],
+      "typeVersion": 202502,
+      "credentials": {
+        "wahaApi": {
+          "id": "PgV9vmY6rBF6OS6W",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Dados Cliente').item.json.session }}",
+        "chatId": "={{ $('Dados Cliente').item.json.telefone }}",
+        "reply_to": "=",
+        "text": "={{ $json.output }}",
+        "linkPreview": false,
+        "requestOptions": {}
+      },
+      "id": "2f7cc3d8-79e1-4b64-ba86-5965bda44270",
+      "name": "Send a text message3",
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "position": [
+        256,
+        3136
+      ],
+      "typeVersion": 202502,
+      "credentials": {
+        "wahaApi": {
+          "id": "PgV9vmY6rBF6OS6W",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const str = $input.first().json.body.payload._data.Info.SenderAlt;\nconst numero = str.replace(/[:@].*/, \"\"); // Remove tudo a partir de \":\" ou \"@\"\nconsole.log(numero); // Deve imprimir \"5512981092776\"\nreturn [{ numero }];"
+      },
+      "id": "fcd76fe1-bc42-40db-b217-08dc9c8f0c68",
+      "name": "Code in JavaScript",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -256,
+        3408
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": "n8n_chat_histories",
+          "cachedResultName": "n8n_chat_histories"
+        },
+        "columns": {
+          "value": {
+            "message": "={\"type\": \"ai\", \"content\": \"{{ $('Entrada de Contato').item.json.body }}\", \"additional_kwargs\": {}, \"response_metadata\": {}}",
+            "session_id": "={{ $json.telefone }}"
+          },
+          "schema": [
+            {
+              "id": "id",
+              "type": "number",
+              "display": true,
+              "removed": true,
+              "required": false,
+              "displayName": "id",
+              "defaultMatch": true,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "session_id",
+              "type": "string",
+              "display": true,
+              "required": true,
+              "displayName": "session_id",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "type": "object",
+              "display": true,
+              "required": true,
+              "displayName": "message",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "id"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "ff90049e-a674-434e-ae19-13a610be3e23",
+      "name": "Salvar Historicoo Humano",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        -5824,
+        2272
+      ],
+      "typeVersion": 2.5,
+      "credentials": {
+        "postgres": {
+          "id": "b3CY39ryjVbVLofl",
+          "name": "Postgres - Estoque Car"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 1,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "ff00573b-e517-43c6-8644-14a4fe8565d1",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notStartsWith"
+                    },
+                    "leftValue": "={{ $json.atendimento_ia }}",
+                    "rightValue": "pause"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Ia Ativa"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 1,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "3ef0e01c-cc14-4663-bb4d-2905b350c3ab",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    },
+                    "leftValue": "={{ $json.atendimento_ia }}",
+                    "rightValue": "pause"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Ia pausada"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2a41a505-dcda-4dc7-a53f-ab79f3d71396",
+      "name": "Rota Atendimento",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -5584,
+        2848
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "end_users",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telefone",
+              "condition": "eq"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "atendimento_ia",
+              "fieldValue": "pause"
+            }
+          ]
+        }
+      },
+      "id": "0a42b591-4f56-47e0-ac53-6e4ba5e13590",
+      "name": "Pausar IA",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        -6208,
+        2672
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "supabaseApi": {
+          "id": "fJRkH98dmQA0w9Lb",
+          "name": "Supabase - Empresa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "end_users",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telefone",
+              "keyValue": "={{ $('Dados Cliente').item.json.telefone }}"
+            },
+            {
+              "keyName": "tenant_id",
+              "keyValue": "={{ $('Get a row3').item.json.tenant_id }}"
+            }
+          ]
+        }
+      },
+      "id": "1730791f-d8a3-4bc3-bb38-fd0a35751f6f",
+      "name": "Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        -6256,
+        2864
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "fJRkH98dmQA0w9Lb",
+          "name": "Supabase - Empresa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "end_users",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "nome",
+              "fieldValue": "={{ $('Dados Cliente').item.json.Name }}"
+            },
+            {
+              "fieldId": "telefone",
+              "fieldValue": "={{ $('Dados Cliente').item.json.telefone }}"
+            },
+            {
+              "fieldId": "tenant_id",
+              "fieldValue": "={{ $('Get a row3').item.json.tenant_id }}"
+            }
+          ]
+        }
+      },
+      "id": "b3f42724-0478-402f-8fae-ebbcf9b0554d",
+      "name": "Create a row1",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        -5808,
+        2928
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "supabaseApi": {
+          "id": "fJRkH98dmQA0w9Lb",
+          "name": "Supabase - Empresa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "e5b93e9e-875f-4ae5-a227-8f286584b27c",
+      "name": "OpenRouter Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        1168,
+        3632
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "openRouterApi": {
+          "id": "t9Jg86sJP7dEzakv",
+          "name": "Carros - EstoqueCar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "id": "3bbded67-d440-490c-a17f-cd83961ab3db",
+      "name": "Wait1",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        -480,
+        2736
+      ],
+      "webhookId": "3c28a3fe-e4f6-4ecc-ac8a-904a8482e0bf",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "end_users",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telefone",
+              "condition": "eq",
+              "keyValue": "={{ $('Dados Cliente').item.json.telefone }}"
+            },
+            {
+              "keyName": "tenant_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get a row3').item.json.tenant_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "atendimento_ia",
+              "fieldValue": "=pause"
+            }
+          ]
+        }
+      },
+      "id": "1944b035-6ea8-4f20-936f-62c36b0af33a",
+      "name": "Update a row",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        -704,
+        2736
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "supabaseApi": {
+          "id": "fJRkH98dmQA0w9Lb",
+          "name": "Supabase - Empresa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "end_users",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "tenant_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get a row3').item.json.tenant_id }}"
+            },
+            {
+              "keyName": "telefone",
+              "condition": "eq",
+              "keyValue": "={{ $('Dados Cliente').item.json.telefone }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "atendimento_ia",
+              "fieldValue": "NULL"
+            }
+          ]
+        }
+      },
+      "id": "32aeee76-23fa-46e4-839b-068703ebf6c4",
+      "name": "Reativar IA1",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        -256,
+        2736
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "supabaseApi": {
+          "id": "fJRkH98dmQA0w9Lb",
+          "name": "Supabase - Empresa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Dados Cliente').all()[0].json.telefone }}",
+        "contextWindowLength": 10
+      },
+      "id": "df61444e-cf68-4c29-9da9-42938119e5c5",
+      "name": "Postgres Chat Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "position": [
+        -2304,
+        3168
+      ],
+      "typeVersion": 1.3,
+      "credentials": {
+        "postgres": {
+          "id": "b3CY39ryjVbVLofl",
+          "name": "Postgres - Estoque Car"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "0f05450a-7e19-470b-b56d-e8bab836f327",
+      "name": "Loop Over Items3",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        -160,
+        3040
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "options": {
+          "destinationFieldName": "output"
+        }
+      },
+      "id": "2aee38cb-d358-4025-9292-01854b3cbc57",
+      "name": "Split de Mensagem",
+      "type": "n8n-nodes-base.splitOut",
+      "position": [
+        -432,
+        3040
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "id": "56517160-b0c4-4105-b5a5-1ec2e1c9835e",
+      "name": "1 segundo",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        496,
+        3136
+      ],
+      "webhookId": "aa7f729c-994f-4706-98be-e7d22555dfd4",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "description": "Acione essa tool SEMPRE que julgar necessário para salvar informações importantes que o cliente forneceu e que podem ser usados para consultas de logo prazo como as referências abaixo:\n\nNome:\nCPF:\nCidade:\nCarro de escolha:\nFormas de pagamento:\nData de nascimento:\nAgendamento:",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "XNUZN57XG9xHZk8V",
+          "cachedResultUrl": "/workflow/XNUZN57XG9xHZk8V",
+          "cachedResultName": "Carros - EstoqueCar"
+        },
+        "workflowInputs": {
+          "value": {
+            "id": "={{ $json.telefone }}",
+            "novas informacoes do lead": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('novas_informacoes_do_lead', ``, 'string') }}"
+          },
+          "schema": [
+            {
+              "id": "novas informacoes do lead",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "novas informacoes do lead",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "id",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "id",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "20114a30-db2b-4e0a-a5ae-3353458f7de5",
+      "name": "LongMemory",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "position": [
+        -1712,
+        3168
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Dados Cliente').item.json.session }}",
+        "chatId": "={{ $('Dados Cliente').item.json.telefone }}",
+        "text": "=✅ CPF Aprovado!!! Esta proposta ira ficar ativa por 24horas!!!",
+        "linkPreview": false,
+        "requestOptions": {}
+      },
+      "id": "1abcecc0-9650-4686-a386-2cdb37176139",
+      "name": "Send a text message4",
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "position": [
+        -32,
+        2736
+      ],
+      "typeVersion": 202502,
+      "credentials": {
+        "wahaApi": {
+          "id": "PgV9vmY6rBF6OS6W",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "end_users",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telefone",
+              "keyValue": "={{ $('Dados Cliente').all()[0].json.telefone }}"
+            }
+          ]
+        }
+      },
+      "id": "3dc8c4dc-71d6-4af9-a7ba-251bf5eb4bb2",
+      "name": "Get a row",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        -2832,
+        2880
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "fJRkH98dmQA0w9Lb",
+          "name": "Supabase - Empresa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e3b33c47-bf15-4f53-99aa-7cd7a461aa18",
+              "name": "telefone limpo",
+              "type": "string",
+              "value": "={{ $json.numero }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fba31777-e4ac-41e9-827a-841017b9ba69",
+      "name": "Ed.telefonelimpo",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -32,
+        3408
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Entrada de Contato').item.json.session }}",
+        "chatId": "={{ $('Update a row1').item.json.telefone }}",
+        "reply_to": "TESTE",
+        "text": "=Agendamento confirmado ✅  Te esperamos na loja!!!",
+        "requestOptions": {}
+      },
+      "id": "5bfc8421-e598-4f71-95c7-13f553e16d9c",
+      "name": "Send a text message2",
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "position": [
+        1664,
+        3408
+      ],
+      "typeVersion": 202502,
+      "credentials": {
+        "wahaApi": {
+          "id": "PgV9vmY6rBF6OS6W",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "be281cde-95c6-4b3d-ba3d-a938eaf30514",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "leftValue": "={{ $json.output }}",
+              "rightValue": ".jpg"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1c2c892a-e42f-4282-a04d-c7b48f11e3b0",
+      "name": "If8",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        32,
+        3056
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Image",
+        "session": "={{ $('Dados Cliente').item.json.session }}",
+        "chatId": "={{ $('Dados Cliente').item.json.telefone }}",
+        "file": "={\n  \"mimetype\": \"image/jpeg\",\n  \"filename\": \"filename.jpg\",\n  \"url\": \"{{ $json.output }}\"\n} ",
+        "requestOptions": {}
+      },
+      "id": "7b0d5069-770c-43fc-990b-9c45b9d3a73d",
+      "name": "Send an image",
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "position": [
+        704,
+        2960
+      ],
+      "typeVersion": 202502,
+      "credentials": {
+        "wahaApi": {
+          "id": "PgV9vmY6rBF6OS6W",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pega todos os itens vindos do Split\nconst items = $input.all();\n\nreturn items.map(({ json }) => {\n  const text = (json.output ?? '').toString();\n\n  // Captura links de imagem\n  const imageLinks = text.match(/https?:\\/\\/[^\\s\\\\]+?\\.(?:jpe?g|png|webp|gif)/gi) || [];\n\n  // Texto sem os links\n  const messageText = text\n    .replace(/https?:\\/\\/[^\\s\\\\]+?\\.(?:jpe?g|png|webp|gif)/gi, '')\n    .replace(/\\\\n/g, '\\n')       // remove \\n literais se vierem escapados\n    .replace(/\\s+/g, ' ')\n    .trim();\n\n  return {\n    json: {\n      messageText,\n      imageLinks,\n      hasImage: imageLinks.length > 0,\n    }\n  };\n});"
+      },
+      "id": "89e6d863-04d0-4af2-9d2d-e53a4c5c41f0",
+      "name": "Code in JavaScript1",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        256,
+        2960
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "imageLinks",
+        "options": {
+          "destinationFieldName": "output"
+        }
+      },
+      "id": "607c6906-e55d-484f-83c9-d283f9bf9b42",
+      "name": "Split de Mensagem1",
+      "type": "n8n-nodes-base.splitOut",
+      "position": [
+        480,
+        2960
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "6305b1e7-0872-410b-ba3c-bf9c24ba07e9",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.from }}",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Humano"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "ccd36387-e96f-4524-9de3-e387dfd4a129",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.from }}",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Cliente"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "23798a70-9eac-4e0b-b873-7bafae96b306",
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -6784,
+        2752
+      ],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7df94192-133c-4760-9a33-2fcfe6993a80",
+              "name": "Resposta",
+              "type": "string",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1464dfa4-1ec1-47c9-b888-e3ec35826bf0",
+      "name": "Nome agent Amanda1",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -1632,
+        2880
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "estoquecar12",
+        "options": {}
+      },
+      "id": "200d64f9-029f-41f0-b4f1-f1ee21e198cf",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        -8544,
+        2688
+      ],
+      "webhookId": "bcd9a1bd-aef0-4633-a4fe-fd4fd446f74d",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "id": "9448e2fb-0299-4bdc-a9fb-57ff01f4f302",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        928,
+        3136
+      ],
+      "webhookId": "19139852-3d6b-47dd-966c-abfac4abef85",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e3c37f5a-13b2-4606-8299-23709e3a237a",
+              "name": "output",
+              "type": "array",
+              "value": "={{ $json.mensagens }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "148d20f6-69a6-49b5-9e2f-4bd9f56485f0",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -640,
+        3040
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: resposta da IA\nconst resposta = $input.item.json.Resposta;\n\n// Remove espaços extras e normaliza quebras\nlet mensagens = resposta\n  .split(/\\\\n+/g)  // divide por 1 ou mais \\n\n  .map(msg => msg.trim())  // remove espaços\n  .filter(msg => msg.length > 0);  // remove vazios\n\nreturn {\n  json: {\n    Resposta: resposta,\n    mensagens: mensagens,\n    total: mensagens.length\n  }\n};"
+      },
+      "id": "f86461ab-ed54-4eba-99b2-33670b146b07",
+      "name": "Code in JavaScript2",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -1376,
+        2880
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.texto }}",
+        "options": {
+          "systemMessage": "=# Prompt: 🤖 Resumidor de Conversas — EstoqueCar\n\n## 🎯 Objetivo\nGerar um resumo curto, visual e útil da **conversa de venda de carro**, mostrando apenas as **informações fornecidas pelo cliente** (interesse, condições, simulação e próximos passos).  \nO resultado deve ser uma **listinha organizada e fácil de ler no grupo interno**.\n\n---\n\n## 🧠 Instruções\n- Use **negrito** nos títulos de cada linha.  \n- Adicione **emojis temáticos** (🚗, 💬, 💰, 🔁, 📲, 📅, ⚙️, ✅, ❌, 🧾).  \n- Seja **curto, direto e sem comentários adicionais**.  \n- Fale **apenas sobre o que o cliente informou** — ignore falas do agente.  \n- Se algo não foi informado, use: *não informado*.  \n- Nunca inclua dicas, instruções ou justificativas no final.\n\n---\n\n## 📋 Estrutura de Saída\n\n**🧍 Cliente:** : [NOME]\n**🚗 Interesse principal:** [modelo/ano]  \n**⚙️ Preferências:** [cor / versão / câmbio / combustível / km – ou *não informado*]  \n**💰 Condições de pagamento:** [à vista / financiado]  \n**💵 Entrada:** [valor ou *não informado*]  \n**🔁 Troca:** [sim / não]; **Detalhes:** [modelo/ano/versão/km/quitado – ou *não informado*]  \n**🧾 Dados da Simulação:**  \n- **Nome:** [..]  \n- **Nasc:** [..]  \n- **CPF:** [..]  \n- **Entrada:** [..]  \n**📊 Simulação:** [parcelas e valores – ex.: *60x R$1.280 ou 48x R$1.500* / *aguardando simulação*]  \n**💬 Objeções ou motivadores:** [ex.: busca aprovação, preço, distância, urgência – ou *não informado*]  \n**📅 Status atual:** [pediu simulação / agendou test-drive / visita combinada em dd/MM HH:mm / aguardando retorno]  \n**🚀 Próximo passo:** [ação sugerida – ex.: confirmar visita, enviar proposta, marcar test-drive]  \n**⏰ Gerado em:** {{ $now }}  \n**📲 WhatsApp:** https://wa.me/{{ $('Ed.telefonelimpo').item.json['telefone limpo'] }}\n\n---\n\n## 🪄 Regras de Geração\n- **Não inventar dados**: use apenas o que o cliente informou.  \n- O telefone deve seguir o formato: `https://wa.me/55XXXXXXXXXXX`.  \n- Se o cliente citar mais de um carro, listar o principal e depois os similares.  \n- Se ele pediu simulação mas não informou dados, marcar *aguardando dados de simulação*.  \n- Sempre manter o formato visual acima (com emojis e negrito).  \n- Ignorar respostas do agente — só extrair **dados e intenções do cliente**.  \n- Falar sempre em português natural, sem repetições e sem instruções extras.  \n\n---\n\n## 📥 Conteúdo para resumir\n{{ $json.texto }} {{ $('Ed.telefonelimpo').item.json['telefone limpo'] }}"
+        }
+      },
+      "id": "d41ac225-c53d-4d90-8122-b48cf8f0dec5",
+      "name": "AI Agent2",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1088,
+        3408
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "conversas",
+        "include": "specifiedFields",
+        "fieldsToInclude": "id,message_type,created_at,user_message, bot_message,phone,nomewpp",
+        "options": {}
+      },
+      "id": "0354a408-aef3-468a-8a81-50bfa72245fc",
+      "name": "Aggregate2",
+      "type": "n8n-nodes-base.aggregate",
+      "position": [
+        640,
+        3408
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "return $('Aggregate2').all().map(item => {\n  // Tenta acessar a propriedade 'conversas' e verifica se ela é um array\n  const conversas = item.json.conversas || []; // Garante que é pelo menos um array vazio\n\n  if (!Array.isArray(conversas)) {\n    throw new Error(\"A propriedade 'conversas' não é um array.\");\n  }\n\n  // Processa cada conversa e verifica as mensagens\n  const textoUnico = conversas.map(conversa => {\n    const cliente = conversa.user_message || \"sem mensagem do chatbot\";\n    const agente = conversa.bot_message || \"sem resposta\";\n    \n    // Verifica se a data existe e formata\n    const dataOriginal = conversa.created_at || \"Data da Mensagem indisponível\";\n    const dataFormatada = dataOriginal !== \"Data da Mensagem indisponível\"\n      ? formatarData(dataOriginal)\n      : dataOriginal;\n\n    return `em: ${dataFormatada}\\n\\n - agente(chatbot): ${agente} \\n - cliente: ${cliente}\\n`;\n  }).join('\\n\\n');\n\n  // Retorna o texto final como resultado\n  return {\n    json: {\n      texto: textoUnico\n    }\n  };\n});\n\n// Função para formatar a data\nfunction formatarData(dataString) {\n  const data = new Date(dataString); // Converte a string em objeto Date\n  if (isNaN(data)) {\n    return \"Data inválida\"; // Retorna se a data não for válida\n  }\n  \n  // Formata no padrão DD/MM/YYYY HH:mm\n  const dia = String(data.getDate()).padStart(2, '0');\n  const mes = String(data.getMonth() + 1).padStart(2, '0'); // Mês começa em 0\n  const ano = data.getFullYear();\n  const horas = String(data.getHours()).padStart(2, '0');\n  const minutos = String(data.getMinutes()).padStart(2, '0');\n  \n  return `${dia}/${mes}/${ano} ${horas}:${minutos}`;\n}\n"
+      },
+      "id": "47ae9e3b-d373-42c0-8839-36ee5c9f3552",
+      "name": "Code6",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        864,
+        3408
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "33c2ae39-adff-4fa4-a88e-ff2dc068e1c8",
+              "name": "body.payload._data.Info.SenderAlt",
+              "type": "string",
+              "value": "={{ $('Webhook').item.json.body.payload._data.Info.SenderAlt }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "212a7548-d339-416c-9402-f29595af3932",
+      "name": "Edit Fields6",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -480,
+        3408
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "dados_cliente",
+        "limit": 1,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Update a row1').item.json.telefone }}"
+            }
+          ]
+        }
+      },
+      "id": "ded089ce-fbb2-4abf-886d-2a31633a9de4",
+      "name": "ListMessages-Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        416,
+        3408
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "QIBVbkM6soohoF5E",
+          "name": "Supabase - Estoque Car"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "Pega-Memoria-text-2",
+        "key": "={{ $('Dados Cliente').item.json.telefone }}",
+        "options": {
+          "dotNotation": false
+        }
+      },
+      "id": "bbaf1a06-5af3-4aae-96d4-d8bfb1562906",
+      "name": "Pega-Memoria-text-2",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        -3568,
+        2896
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "Jty5ncWf4QmKd0vH",
+          "name": "Redis - EstoqueCar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "Pega-Memoria-text",
+        "key": "={{ $('Dados Cliente').item.json.telefone }}",
+        "options": {}
+      },
+      "id": "c6097660-fa39-47a3-831f-60619bf5ad65",
+      "name": "Pega-Memoria-text",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        -4016,
+        2896
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "Jty5ncWf4QmKd0vH",
+          "name": "Redis - EstoqueCar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": "={{ $('Config-IA').item.json.tempo_atendimento }}"
+      },
+      "id": "8c5607b0-6224-418c-abef-8be79bd5e740",
+      "name": "Espera para responder",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        -3792,
+        2896
+      ],
+      "webhookId": "9162d5f5-e5bd-4d2a-9499-c69ba0ada76b",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Dados Cliente').item.json.telefone }}"
+      },
+      "id": "1c6b340c-f398-4ac1-b188-087c8b2a47a9",
+      "name": "Delete Memory1",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        -1872,
+        2880
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "Jty5ncWf4QmKd0vH",
+          "name": "Redis - EstoqueCar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "d5a342e9-585b-42ea-be44-644adae10199",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json['Pega-Memoria-text-2'].last() }}",
+              "rightValue": "={{ $('Espera para responder').item.json['Pega-Memoria-text'].last() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "05a7dab1-0e04-4094-98f6-9a3d7bc0c954",
+      "name": "Compara Get Memory",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -3344,
+        2896
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "dados_cliente",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telefone",
+              "condition": "eq",
+              "keyValue": "={{ $json.telefone }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "atendimento_ia",
+              "fieldValue": "NULL"
+            }
+          ]
+        }
+      },
+      "id": "5b1789b0-648c-4502-919f-36aa1cd0a142",
+      "name": "Reativar",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        -6016,
+        2272
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "supabaseApi": {
+          "id": "QIBVbkM6soohoF5E",
+          "name": "Supabase - Estoque Car"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "unit": "minutes"
+      },
+      "id": "3e2409f9-33b3-432e-87f4-9b728eb0bc45",
+      "name": "Wait2",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        -6208,
+        2272
+      ],
+      "webhookId": "7c7fb74d-be7e-40d5-a3ed-8392505b7cd2",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "72c2e8e1-abd4-44f8-ba2f-2327092240fb",
+              "name": "event",
+              "type": "string",
+              "value": "={{ $json.body.event }}"
+            },
+            {
+              "id": "d0e54632-52d9-4a1e-a428-8df2a3aeafaa",
+              "name": "session",
+              "type": "string",
+              "value": "={{ $json.body.session }}"
+            },
+            {
+              "id": "b487eee9-482a-48c8-a9e6-069541024a05",
+              "name": "payload",
+              "type": "string",
+              "value": "={{ $json.body.payload.id }}"
+            },
+            {
+              "id": "944eb77b-bd73-4f2d-b72c-e1a8d6b6706a",
+              "name": "telefone",
+              "type": "string",
+              "value": "={{ $json.body.payload.from }}"
+            },
+            {
+              "id": "4e12c75a-05d3-4ada-a3bf-92c184766ade",
+              "name": "source",
+              "type": "string",
+              "value": "={{ $json.body.payload.source }}"
+            },
+            {
+              "id": "c4685049-214d-4b7f-b6c0-b9d747a2fda9",
+              "name": "hasMedia",
+              "type": "boolean",
+              "value": "={{ $json.body.payload.hasMedia }}"
+            },
+            {
+              "id": "57a9a827-3bce-494c-86c6-3b2ab4823981",
+              "name": "type",
+              "type": "string",
+              "value": "={{ $json.body.payload._data.Info.Type }}"
+            },
+            {
+              "id": "b018246e-6e73-4b01-b86a-d45b762b559b",
+              "name": "Name",
+              "type": "string",
+              "value": "={{ $json.body.payload._data.Info.PushName }}"
+            },
+            {
+              "id": "498a66db-e3a7-4375-8659-dda96533ab60",
+              "name": "from",
+              "type": "boolean",
+              "value": "={{ $json.body.payload.fromMe }}"
+            },
+            {
+              "id": "b8243bab-fa5e-4c79-8270-8bf2327df5d8",
+              "name": "url",
+              "type": "string",
+              "value": "={{ $json.body.payload.media.url }}"
+            },
+            {
+              "id": "d7fa1f74-a440-4b49-8b4d-a0d7aa0f0d90",
+              "name": "mimetype",
+              "type": "string",
+              "value": "={{ $json.body.payload.media.mimetype }}"
+            },
+            {
+              "id": "f3f98c2e-fa50-48a4-a680-b13e0623c59a",
+              "name": "body",
+              "type": "string",
+              "value": "={{ $json.body.payload.body }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "95f58a3d-bf1e-4d30-a5fb-9b9b85e5042e",
+      "name": "Dados Cliente",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -8336,
+        2688
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "4a6d9aac-8565-4c58-abe3-8741393a5535",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.telefone }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "99e1fdd6-75f1-4599-8147-b500c0aca368",
+      "name": "Existe no banco?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -6032,
+        2864
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Dados Cliente').all()[$itemIndex].json.telefone }}"
+      },
+      "id": "479f3bb9-1095-4d95-9113-3204c1984062",
+      "name": "Delete Memory",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        -1152,
+        2880
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "Jty5ncWf4QmKd0vH",
+          "name": "Redis - EstoqueCar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wahaApi",
+        "options": {}
+      },
+      "id": "3f6f242b-0dfc-428e-ad79-a2280ea1d318",
+      "name": "HTTP Request3",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -4688,
+        2768
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "wahaApi": {
+          "id": "PgV9vmY6rBF6OS6W",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "wahaApi",
+        "options": {}
+      },
+      "id": "8b255892-7cb8-46cb-8cfe-b11e1d332001",
+      "name": "HTTP Request4",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -4688,
+        2576
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "wahaApi": {
+          "id": "PgV9vmY6rBF6OS6W",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ff9a460a-1204-429f-a027-cfdf975feb55",
+              "name": "messager",
+              "type": "string",
+              "value": "={{ $json.mensager }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5aad78f8-a22c-437d-a7f2-43197cc9dee6",
+      "name": "Edit Fields7",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -4464,
+        3152
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 1,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "c37eba74-960d-4e98-be7e-39355146be23",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mimetype }}",
+                    "rightValue": "audio/ogg; codecs=opus"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 1,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "c0e434dd-1268-421d-b81b-3a5e90ed9550",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.mimetype }}",
+                    "rightValue": "=image/jpeg"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "image"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "90fa9c90-fc37-4b15-a47f-d6895f425cdd",
+      "name": "Switch9",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -4912,
+        2656
+      ],
+      "notesInFlow": true,
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "df778a17-2c98-46b5-a496-302f943114cb",
+              "name": "url",
+              "type": "string",
+              "value": "={{ $('Dados Cliente').item.json.url }}"
+            },
+            {
+              "id": "91bc1d1f-28ae-487e-868a-b3283f366f49",
+              "name": "mimetype",
+              "type": "string",
+              "value": "={{ $('Dados Cliente').item.json.mimetype }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a2ff7b1e-743e-4530-8dcd-30106b3f62c8",
+      "name": "Edit Fields8",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -5136,
+        2672
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "136d4284-b756-4a25-86b3-c1203e7e26b0",
+              "name": "mensager",
+              "type": "string",
+              "value": "={{ $('Dados Cliente').item.json.body }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3311224e-b172-484b-b696-32ef7981d535",
+      "name": "Edit Fields11",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -4688,
+        3152
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "d2d823cb-2115-4707-b2e9-06cd42f3b68b",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{ $('Dados Cliente').item.json.hasMedia }}",
+              "rightValue": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "99941a71-c142-4ffc-a127-9553d6fd9f7c",
+      "name": "If10",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -5328,
+        2832
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "id": "37c44d52-c4de-48f7-adbb-bcce1c7ea240",
+      "name": "OpenAI7",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        -4464,
+        2576
+      ],
+      "typeVersion": 1.6,
+      "credentials": {
+        "openAiApi": {
+          "id": "Bb0kDWueXzwUXoil",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $('Dados Cliente').item.json.telefone }}",
+        "messageData": "={{ $json.text }}",
+        "tail": true
+      },
+      "id": "cdb52d80-7db9-4ab0-897e-9baad5eae4bb",
+      "name": "Audio Memory",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        -4240,
+        2576
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "Jty5ncWf4QmKd0vH",
+          "name": "Redis - EstoqueCar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $('Dados Cliente').item.json.telefone }}",
+        "messageData": "={{ $json.messager }}",
+        "tail": true
+      },
+      "id": "4334f001-26f9-4e8a-8392-06a7511340d5",
+      "name": "Text Memory",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        -4240,
+        3152
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "Jty5ncWf4QmKd0vH",
+          "name": "Redis - EstoqueCar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "Analise a imagem e me traga um resumo simples e o mais curto possível do que ela é",
+        "inputType": "base64",
+        "options": {}
+      },
+      "id": "195ff8e8-a2a0-4d95-b2d5-5eaeddf6f4dc",
+      "name": "OpenAI1",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        -4464,
+        2768
+      ],
+      "typeVersion": 1.6,
+      "credentials": {
+        "openAiApi": {
+          "id": "Bb0kDWueXzwUXoil",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $('Dados Cliente').item.json.telefone }}",
+        "messageData": "={{ $json.content.replace(/\\n/g, \"\\\\n\").replace(/['\"]/g, '').trim()  }}",
+        "tail": true
+      },
+      "id": "f80a60e7-8ce5-44b9-9dfa-fb53d4377c15",
+      "name": "Redis",
+      "type": "n8n-nodes-base.redis",
+      "position": [
+        -4240,
+        2768
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "Jty5ncWf4QmKd0vH",
+          "name": "Redis - EstoqueCar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Entrada de Contato1').item.json.session }}",
+        "chatId": "={{ $('Entrada de Contato1').item.json.telefone }}",
+        "text": "=Não mande vídeo! Não conseguimos abrir.",
+        "requestOptions": {}
+      },
+      "id": "403e2f11-f171-40f5-b907-669f58d1388e",
+      "name": "Send a text message1",
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "position": [
+        -4688,
+        2960
+      ],
+      "typeVersion": 202502,
+      "credentials": {
+        "wahaApi": {
+          "id": "PgV9vmY6rBF6OS6W",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "id": "3459de3b-7880-4ba7-8385-6b62dbe66bfe",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        -2464,
+        3168
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "Bb0kDWueXzwUXoil",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f336a1ff-e577-489d-a739-1eb8bd509245",
+              "name": "mensagecompleta",
+              "type": "string",
+              "value": "={{ $('Pega-Memoria-text-2').item.json['Pega-Memoria-text-2'].join('\\n') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "46e7b5e7-ebe9-4270-a0db-7d35bcee2485",
+      "name": "mensagemcompleta",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -3088,
+        2880
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "6d65c9b9-f5a3-48b7-8932-04310f3049b5",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "leftValue": "={{ $json.source }}",
+              "rightValue": "api"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1baac92f-6a37-49da-9691-65c5d854433d",
+      "name": "If1",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -7712,
+        2688
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "or",
+          "conditions": [
+            {
+              "id": "492fb7c4-a681-45e5-8906-ba60d044bb15",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "leftValue": "={{ $json.telefone }}",
+              "rightValue": "@g.us"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "43052a02-e8ee-48f1-be0f-c07ab7d91065",
+      "name": "If2",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -7488,
+        2704
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "1ded8bde-a8cf-4d6f-8536-939319b347ed",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "leftValue": "={{ $json.event }}",
+              "rightValue": "status"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fcb87a03-deef-48eb-8d26-860e8b4ca76d",
+      "name": "If3",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -7248,
+        2720
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "5091ef4d-1f73-4375-af64-4df15c550648",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "leftValue": "={{ $('Dados Cliente').item.json.telefone }}",
+              "rightValue": "@broadcast"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1924f1b8-cf76-4f24-8837-0e66cabfaacf",
+      "name": "If4",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -7024,
+        2736
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "132dd3cb-a1c6-4973-bb68-b79649eadcd7",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "leftValue": "={{ $json.body }}",
+                    "rightValue": "={{ $('Dados Cliente').item.json.ReativarIA }}"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "reativar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "4f3f8be7-d9af-4783-ae75-a69a02bfa791",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "leftValue": "={{ $json.body }}",
+                    "rightValue": "={{ $json['Resetar Banco'] }}"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "resetar"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "f455e8b7-381f-4814-9887-32aeb3954219",
+      "name": "Switch1",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -6560,
+        2448
+      ],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "agents",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "workflow_id",
+              "keyValue": "=XNUZN57XG9xHZk8V"
+            }
+          ]
+        }
+      },
+      "id": "97837234-f3e0-4fe9-a767-601d09f4b217",
+      "name": "Get a row3",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        -8160,
+        2688
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "supabaseApi": {
+          "id": "fJRkH98dmQA0w9Lb",
+          "name": "Supabase - Empresa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfe92150-653c-40a9-96f0-ce02acb60d88",
+              "name": "PausarIA",
+              "type": "string",
+              "value": "={{ $json.codigo_pausar_ia }}"
+            },
+            {
+              "id": "ad727a65-69f8-47ed-b5de-4da5dc1e8b18",
+              "name": "ReativarIA",
+              "type": "string",
+              "value": "={{ $json.codigo_ativar_ia }}"
+            },
+            {
+              "id": "6fd367d3-ac8f-4665-b99e-710dafb7e30d",
+              "name": "Avaliação",
+              "type": "string",
+              "value": "={{ $json.codigo_avaliacao }}"
+            },
+            {
+              "id": "ec5e92b4-7039-4f16-84fc-cca0e51bdffc",
+              "name": "Transferir Grupo",
+              "type": "string",
+              "value": "={{ $json.codigo_envio_grupo }}"
+            },
+            {
+              "id": "8e8ca17a-c0cd-4ddc-a43a-e58aa26c8f5e",
+              "name": "Transferir Vendedor",
+              "type": "string",
+              "value": "={{ $json.codigo_transferencia }}"
+            },
+            {
+              "id": "25e24fbc-e4cd-4327-b4a0-2adb013ba51c",
+              "name": "Resetar Banco",
+              "type": "string",
+              "value": "={{ $json.codigo_resetar_bd }}"
+            },
+            {
+              "id": "77f89102-8d5b-456f-ad37-cd3adf2dc3a1",
+              "name": "Script",
+              "type": "string",
+              "value": "={{ $json.script_atendimento }}"
+            },
+            {
+              "id": "c4509935-933d-4a00-8d87-ea75da3ac8ea",
+              "name": "Saudacao",
+              "type": "string",
+              "value": "={{ $json.saudacao_inicial }}"
+            },
+            {
+              "id": "5a9cc6f8-953a-4a2e-80ba-ab2edf6f581e",
+              "name": "clienteID",
+              "type": "string",
+              "value": "={{ $json.client_id }}"
+            },
+            {
+              "id": "f420875c-c59d-46e0-bf67-181637bcf422",
+              "name": "tenant_id",
+              "type": "number",
+              "value": "={{ $json.tenant_id }}"
+            },
+            {
+              "id": "8fac01ca-7c2b-4a2a-a68c-39f7b5b5ffb5",
+              "name": "id",
+              "type": "string",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "id": "1bf5f305-0af0-4788-9c41-c0e356cd9455",
+              "name": "tempo_atendimento",
+              "type": "number",
+              "value": "={{ $json.tempo_atendimento }}"
+            },
+            {
+              "id": "5f95bfce-d9b0-4e2a-a53c-4e9d14807324",
+              "name": "nome_agente",
+              "value": "={{ $json.nome_agente }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0a3c8e1a-99f6-426a-a09f-6b51d89ea7dc",
+      "name": "Config-IA",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -7968,
+        2688
+      ],
+      "typeVersion": 3.4
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n-clientes.eversync.com.br",
+            "user-agent": "WAHA/2025.10.4",
+            "content-length": "2433",
+            "accept": "application/json, text/plain, */*",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "content-type": "application/json",
+            "x-forwarded-for": "147.93.66.27",
+            "x-forwarded-host": "n8n-clientes.eversync.com.br",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "8a1eec2733ab",
+            "x-real-ip": "147.93.66.27",
+            "x-webhook-request-id": "01K9HAV46MT1HHPRWE8YYSYM9H",
+            "x-webhook-timestamp": "1762592133332"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "id": "evt_01k9hav46m0t5nq2rmtegmhw2k",
+            "timestamp": 1762592133332,
+            "event": "message.any",
+            "session": "EverSync",
+            "metadata": {},
+            "me": {
+              "id": "5512997548852@c.us",
+              "pushName": "Ever Sync Technology",
+              "lid": "172632452370461@lid",
+              "jid": "5512997548852:1@s.whatsapp.net"
+            },
+            "payload": {
+              "id": "false_272842293833954@lid_3B42D600F8D85F5AA77F",
+              "timestamp": 1762592133,
+              "from": "272842293833954@lid",
+              "fromMe": false,
+              "source": "app",
+              "body": "oi",
+              "to": null,
+              "participant": null,
+              "hasMedia": false,
+              "media": null,
+              "ack": 2,
+              "ackName": "DEVICE",
+              "replyTo": null,
+              "_data": {
+                "Info": {
+                  "Chat": "272842293833954@lid",
+                  "Sender": "272842293833954:16@lid",
+                  "IsFromMe": false,
+                  "IsGroup": false,
+                  "AddressingMode": "",
+                  "SenderAlt": "5512981092776:16@s.whatsapp.net",
+                  "RecipientAlt": "",
+                  "BroadcastListOwner": "",
+                  "BroadcastRecipients": null,
+                  "ID": "3B42D600F8D85F5AA77F",
+                  "ServerID": 0,
+                  "Type": "text",
+                  "PushName": "Raphael",
+                  "Timestamp": "2025-11-08T05:55:33-03:00",
+                  "Category": "",
+                  "Multicast": false,
+                  "MediaType": "",
+                  "Edit": "",
+                  "MsgBotInfo": {
+                    "EditType": "",
+                    "EditTargetID": "",
+                    "EditSenderTimestampMS": "0001-01-01T00:00:00Z"
+                  },
+                  "MsgMetaInfo": {
+                    "TargetID": "",
+                    "TargetSender": "",
+                    "TargetChat": "",
+                    "DeprecatedLIDSession": null,
+                    "ThreadMessageID": "",
+                    "ThreadMessageSenderJID": ""
+                  },
+                  "VerifiedName": {
+                    "Certificate": {
+                      "details": "CIrU0Ju1+codEgZzbWI6d2EiB1JhcGhhZWw=",
+                      "signature": "/Mwu+tBvNnPC8UKoqnmpfMO1z1EOERqp6ESWd5s0Al6T1H5B3qVeA5Bps7/lSsFdBADX8xlh60lKsarJVDSdAA=="
+                    },
+                    "Details": {
+                      "serial": 16655175904406026,
+                      "issuer": "smb:wa",
+                      "verifiedName": "Raphael"
+                    }
+                  },
+                  "DeviceSentMeta": null
+                },
+                "Message": {
+                  "conversation": "oi",
+                  "messageContextInfo": {
+                    "deviceListMetadata": {
+                      "senderKeyHash": "P3EXLr579qQc7w==",
+                      "senderTimestamp": 1762538353,
+                      "recipientKeyHash": "9WlKxhRluLvVpA==",
+                      "recipientTimestamp": 1762146040
+                    },
+                    "deviceListMetadataVersion": 2,
+                    "messageSecret": "ykThXKPWrgv34Hqx0Loa2rwQrvdqGyH9sxfw5/kLzHo="
+                  }
+                },
+                "IsEphemeral": false,
+                "IsViewOnce": false,
+                "IsViewOnceV2": false,
+                "IsViewOnceV2Extension": false,
+                "IsDocumentWithCaption": false,
+                "IsLottieSticker": false,
+                "IsBotInvoke": false,
+                "IsEdit": false,
+                "SourceWebMsg": null,
+                "UnavailableRequestID": "",
+                "RetryCount": 0,
+                "NewsletterMeta": null,
+                "RawMessage": {
+                  "conversation": "oi",
+                  "messageContextInfo": {
+                    "deviceListMetadata": {
+                      "senderKeyHash": "P3EXLr579qQc7w==",
+                      "senderTimestamp": 1762538353,
+                      "recipientKeyHash": "9WlKxhRluLvVpA==",
+                      "recipientTimestamp": 1762146040
+                    },
+                    "deviceListMetadataVersion": 2,
+                    "messageSecret": "ykThXKPWrgv34Hqx0Loa2rwQrvdqGyH9sxfw5/kLzHo="
+                  }
+                },
+                "Status": 3
+              }
+            },
+            "environment": {
+              "version": "2025.10.4",
+              "engine": "GOWS",
+              "tier": "PLUS",
+              "browser": null
+            }
+          },
+          "webhookUrl": "https://webhook-clientes.eversync.com.br/webhook-test/estoquecar12",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "If1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If7": {
+      "main": [
+        [
+          {
+            "node": "Adiciona CHAT supabase1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Atualiza CHAT Supabase2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If8": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If10": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code6": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Cria Histórico Supabase1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis": {
+      "main": [
+        [
+          {
+            "node": "Pega-Memoria-text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Reativar IA1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Reativar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Redis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI7": {
+      "main": [
+        [
+          {
+            "node": "Audio Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Deleta Conteúdo Chat_Messages",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pausar IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch6": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Update a row1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch9": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Dados Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Delete Memory1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reativar": {
+      "main": [
+        [
+          {
+            "node": "Salvar Historicoo Humano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase": {
+      "main": [
+        [
+          {
+            "node": "Existe no banco?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1 segundo": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config-IA": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pausar IA": {
+      "main": [
+        []
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Code6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row3": {
+      "main": [
+        [
+          {
+            "node": "Config-IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LongMemory": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split de Mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Memory": {
+      "main": [
+        [
+          {
+            "node": "Pega-Memoria-text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audio Memory": {
+      "main": [
+        [
+          {
+            "node": "Pega-Memoria-text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields7": {
+      "main": [
+        [
+          {
+            "node": "Text Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields8": {
+      "main": [
+        [
+          {
+            "node": "Switch9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reativar IA1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row1": {
+      "main": [
+        [
+          {
+            "node": "Rota Atendimento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dados Cliente": {
+      "main": [
+        [
+          {
+            "node": "Get a row3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Memory": {
+      "main": [
+        [
+          {
+            "node": "Atualiza CHAT Supabase1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Switch6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields11": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "OpenAI7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an image": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Memory1": {
+      "main": [
+        [
+          {
+            "node": "Nome agent Amanda1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Busca Telefone1": {
+      "main": [
+        [
+          {
+            "node": "If7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ed.telefonelimpo": {
+      "main": [
+        [
+          {
+            "node": "ListMessages-Supabase2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Existe no banco?": {
+      "main": [
+        [
+          {
+            "node": "Rota Atendimento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items3": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rota Atendimento": {
+      "main": [
+        [
+          {
+            "node": "If10",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "mensagemcompleta": {
+      "main": [
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pega-Memoria-text": {
+      "main": [
+        [
+          {
+            "node": "Espera para responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split de Mensagem": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Ed.telefonelimpo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compara Get Memory": {
+      "main": [
+        [
+          {
+            "node": "mensagemcompleta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nome agent Amanda1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split de Mensagem1": {
+      "main": [
+        [
+          {
+            "node": "Send an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Split de Mensagem1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Delete Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pega-Memoria-text-2": {
+      "main": [
+        [
+          {
+            "node": "Compara Get Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message3": {
+      "main": [
+        [
+          {
+            "node": "1 segundo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Espera para responder": {
+      "main": [
+        [
+          {
+            "node": "Pega-Memoria-text-2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ListMessages-Supabase": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deleta Conteúdo Chats": {
+      "main": [
+        [
+          {
+            "node": "Deleta Conteúdo Dados Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ListMessages-Supabase2": {
+      "main": [
+        [
+          {
+            "node": "ListMessages-Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adiciona CHAT supabase1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza CHAT Supabase1": {
+      "main": [
+        [
+          {
+            "node": "Busca Telefone1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza CHAT Supabase2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Deleta Conteúdo Chat_Messages": {
+      "main": [
+        [
+          {
+            "node": "Deleta Conteúdo Chats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deleta Conteúdo Dados Cliente": {
+      "main": [
+        [
+          {
+            "node": "Deleta Histórico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "executionOrder": "v1"
+  },
+  "versionId": "d5aad4fb-3c42-47ed-a4b5-1b0e768d0515",
+  "meta": {
+    "instanceId": "55ce61f76a6296893ac35a1aa09022ecc10864b5785296bd159e91d033039493"
+  },
+  "id": "zByDYsS7FJqUXL99",
+  "tags": []
+}

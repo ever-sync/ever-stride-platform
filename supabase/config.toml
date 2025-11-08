@@ -29,6 +29,17 @@ verify_jwt = true
 [functions.n8n-circuit-status]
 verify_jwt = true
 
+# N8N template loaders
+[functions.load-carros-template]
+verify_jwt = true
+
+[functions.load-atendimento-humanizado-template]
+verify_jwt = true
+
+# N8N alert sender
+[functions.send-n8n-alert]
+verify_jwt = false
+
 # All other functions now require JWT authentication
 # Removed verify_jwt = false from:
 # - waha-session-create
