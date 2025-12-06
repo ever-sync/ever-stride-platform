@@ -3,7 +3,8 @@ export interface WahaSession {
   tenant_id: number;
   client_id: string;
   agent_id?: string;
-  session_name: string;
+  instance_name: string; // Primary field from evolution_instances
+  session_name: string; // Alias for compatibility
   phone_number?: string;
   status: string;
   qr_code?: string;
@@ -23,6 +24,9 @@ export interface WahaSession {
   failed_messages?: number;
   created_at: string;
   updated_at: string;
+  whatsapp_clients?: {
+    nome_empresa: string;
+  };
 }
 
 export type WahaStatus = 

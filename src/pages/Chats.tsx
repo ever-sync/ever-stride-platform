@@ -14,8 +14,8 @@ import { ptBR } from "date-fns/locale";
 import type { Chat } from "@/types/database";
 
 interface ExtendedChat extends Chat {
-  waha_sessions?: {
-    session_name: string;
+  evolution_instances?: {
+    instance_name: string;
   };
   end_users?: {
     nome: string;
@@ -29,9 +29,10 @@ interface ExtendedChat extends Chat {
   }>;
 }
 
-interface WahaSession {
+interface SessionOption {
   id: string;
-  session_name: string;
+  instance_name: string;
+  session_name?: string; // Alias
 }
 
 interface Agent {
@@ -43,7 +44,7 @@ export default function Chats() {
   const navigate = useNavigate();
   const { userSession } = useAuth();
   const [chats, setChats] = useState<ExtendedChat[]>([]);
-  const [sessions, setSessions] = useState<WahaSession[]>([]);
+  const [sessions, setSessions] = useState<SessionOption[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [search, setSearch] = useState("");
   const [sessionFilter, setSessionFilter] = useState<string>("all");
@@ -73,7 +74,7 @@ export default function Chats() {
           .from("chats")
           .select(`
             *,
-            waha_sessions(session_name),
+            evolution_instances(instance_name),
             end_users!chats_end_user_id_fkey(nome),
             chat_tags_mapping(
               chat_tags(id, name, color)
@@ -97,13 +98,14 @@ export default function Chats() {
 
       try {
         const { data, error } = await supabase
-          .from("waha_sessions")
-          .select("id, session_name")
+          .from("evolution_instances")
+          .select("id, instance_name")
           .eq("tenant_id", userSession.tenant.id)
-          .order("session_name");
+          .order("instance_name");
 
         if (error) throw error;
-        setSessions(data || []);
+        // Map to include session_name alias
+        setSessions((data || []).map(s => ({ ...s, session_name: s.instance_name })));
       } catch (error) {
         console.error("Error loading sessions:", error);
       }
@@ -243,7 +245,7 @@ export default function Chats() {
                   <option value="all">Todas as sessões</option>
                   {sessions.map((session) => (
                     <option key={session.id} value={session.id}>
-                      {session.session_name}
+                      {session.instance_name}
                     </option>
                   ))}
                 </select>
@@ -339,9 +341,9 @@ export default function Chats() {
                       {chat.end_users?.nome && (
                         <Badge variant="outline">{chat.end_users.nome}</Badge>
                       )}
-                      {chat.waha_sessions?.session_name && (
+                      {chat.evolution_instances?.instance_name && (
                         <Badge variant="default" className="text-xs">
-                          {chat.waha_sessions.session_name}
+                          {chat.evolution_instances.instance_name}
                         </Badge>
                       )}
                       {chat.transferred_to_human && (
