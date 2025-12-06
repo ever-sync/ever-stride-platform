@@ -13,7 +13,7 @@ export function SessionStatistics({ sessionId }: SessionStatsProps) {
     queryKey: ['session-stats', sessionId],
     queryFn: async () => {
       let query = supabase
-        .from('waha_sessions')
+        .from('evolution_instances')
         .select('total_messages_sent, total_messages_received, failed_messages, success_rate, avg_response_time_ms');
 
       if (sessionId) {

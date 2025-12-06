@@ -149,6 +149,86 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_quality_snapshots: {
+        Row: {
+          agent_id: string
+          avg_response_time_ms: number | null
+          consistency_score: number | null
+          cost_per_response_brl: number | null
+          created_at: string | null
+          edge_cases_handled: number | null
+          failed_responses: number | null
+          failed_tests: number | null
+          hallucination_detected: number | null
+          id: string
+          notes: string | null
+          overall_score: number | null
+          passed_tests: number | null
+          rules_compliance_score: number | null
+          run_source: string | null
+          successful_responses: number | null
+          tenant_id: number
+          total_responses: number | null
+          total_tests: number | null
+          triggered_by: string | null
+          user_satisfaction_score: number | null
+        }
+        Insert: {
+          agent_id: string
+          avg_response_time_ms?: number | null
+          consistency_score?: number | null
+          cost_per_response_brl?: number | null
+          created_at?: string | null
+          edge_cases_handled?: number | null
+          failed_responses?: number | null
+          failed_tests?: number | null
+          hallucination_detected?: number | null
+          id?: string
+          notes?: string | null
+          overall_score?: number | null
+          passed_tests?: number | null
+          rules_compliance_score?: number | null
+          run_source?: string | null
+          successful_responses?: number | null
+          tenant_id: number
+          total_responses?: number | null
+          total_tests?: number | null
+          triggered_by?: string | null
+          user_satisfaction_score?: number | null
+        }
+        Update: {
+          agent_id?: string
+          avg_response_time_ms?: number | null
+          consistency_score?: number | null
+          cost_per_response_brl?: number | null
+          created_at?: string | null
+          edge_cases_handled?: number | null
+          failed_responses?: number | null
+          failed_tests?: number | null
+          hallucination_detected?: number | null
+          id?: string
+          notes?: string | null
+          overall_score?: number | null
+          passed_tests?: number | null
+          rules_compliance_score?: number | null
+          run_source?: string | null
+          successful_responses?: number | null
+          tenant_id?: number
+          total_responses?: number | null
+          total_tests?: number | null
+          triggered_by?: string | null
+          user_satisfaction_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_quality_snapshots_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents_v2"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agents: {
         Row: {
           ativo: boolean | null
@@ -339,13 +419,22 @@ export type Database = {
           whatsapp_connected?: boolean | null
           whatsapp_phone?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agents_v2_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chat_messages: {
         Row: {
           active: boolean | null
           bot_message: string | null
           chat_id: number | null
+          client_id: string | null
           created_at: string | null
           id: number
           message_type: string | null
@@ -357,6 +446,7 @@ export type Database = {
           active?: boolean | null
           bot_message?: string | null
           chat_id?: number | null
+          client_id?: string | null
           created_at?: string | null
           id?: number
           message_type?: string | null
@@ -368,6 +458,7 @@ export type Database = {
           active?: boolean | null
           bot_message?: string | null
           chat_id?: number | null
+          client_id?: string | null
           created_at?: string | null
           id?: number
           message_type?: string | null
@@ -381,6 +472,13 @@ export type Database = {
             columns: ["chat_id"]
             isOneToOne: false
             referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_clients"
             referencedColumns: ["id"]
           },
         ]
@@ -465,9 +563,11 @@ export type Database = {
       chats: {
         Row: {
           bot_paused: boolean | null
+          client_id: string | null
           created_at: string | null
           end_user_id: number | null
           id: number
+          nome: string | null
           phone: string | null
           session_id: string | null
           tenant_id: number
@@ -478,9 +578,11 @@ export type Database = {
         }
         Insert: {
           bot_paused?: boolean | null
+          client_id?: string | null
           created_at?: string | null
           end_user_id?: number | null
           id?: number
+          nome?: string | null
           phone?: string | null
           session_id?: string | null
           tenant_id: number
@@ -491,9 +593,11 @@ export type Database = {
         }
         Update: {
           bot_paused?: boolean | null
+          client_id?: string | null
           created_at?: string | null
           end_user_id?: number | null
           id?: number
+          nome?: string | null
           phone?: string | null
           session_id?: string | null
           tenant_id?: number
@@ -503,6 +607,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "chats_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "chats_end_user_id_fkey"
             columns: ["end_user_id"]
@@ -514,7 +625,7 @@ export type Database = {
             foreignKeyName: "chats_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
-            referencedRelation: "waha_sessions"
+            referencedRelation: "evolution_instances"
             referencedColumns: ["id"]
           },
           {
@@ -680,6 +791,109 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "end_users_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evolution_instances: {
+        Row: {
+          agent_id: string | null
+          avg_response_time_ms: number | null
+          client_id: string
+          connected_at: string | null
+          created_at: string | null
+          disconnected_at: string | null
+          failed_messages: number | null
+          id: string
+          instance_name: string
+          last_activity: string | null
+          last_error: string | null
+          last_error_at: string | null
+          last_message_at: string | null
+          phone_number: string | null
+          qr_code: string | null
+          qr_expires_at: string | null
+          reconnect_attempts: number | null
+          status: string | null
+          success_rate: number | null
+          tenant_id: number
+          total_messages_received: number | null
+          total_messages_sent: number | null
+          updated_at: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          avg_response_time_ms?: number | null
+          client_id: string
+          connected_at?: string | null
+          created_at?: string | null
+          disconnected_at?: string | null
+          failed_messages?: number | null
+          id?: string
+          instance_name: string
+          last_activity?: string | null
+          last_error?: string | null
+          last_error_at?: string | null
+          last_message_at?: string | null
+          phone_number?: string | null
+          qr_code?: string | null
+          qr_expires_at?: string | null
+          reconnect_attempts?: number | null
+          status?: string | null
+          success_rate?: number | null
+          tenant_id: number
+          total_messages_received?: number | null
+          total_messages_sent?: number | null
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          avg_response_time_ms?: number | null
+          client_id?: string
+          connected_at?: string | null
+          created_at?: string | null
+          disconnected_at?: string | null
+          failed_messages?: number | null
+          id?: string
+          instance_name?: string
+          last_activity?: string | null
+          last_error?: string | null
+          last_error_at?: string | null
+          last_message_at?: string | null
+          phone_number?: string | null
+          qr_code?: string | null
+          qr_expires_at?: string | null
+          reconnect_attempts?: number | null
+          status?: string | null
+          success_rate?: number | null
+          tenant_id?: number
+          total_messages_received?: number | null
+          total_messages_sent?: number | null
+          updated_at?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waha_sessions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waha_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waha_sessions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1797,6 +2011,38 @@ export type Database = {
           },
         ]
       }
+      tenant_secrets: {
+        Row: {
+          id: string
+          secret_type: string
+          tenant_id: number
+          updated_at: string
+          value_encrypted: string
+        }
+        Insert: {
+          id?: string
+          secret_type: string
+          tenant_id: number
+          updated_at?: string
+          value_encrypted: string
+        }
+        Update: {
+          id?: string
+          secret_type?: string
+          tenant_id?: number
+          updated_at?: string
+          value_encrypted?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_secrets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_users: {
         Row: {
           created_at: string
@@ -2068,6 +2314,135 @@ export type Database = {
         }
         Relationships: []
       }
+      waha_session_configs: {
+        Row: {
+          access_roles: string[]
+          allowed_ips: string[]
+          apply_strategy: string
+          auto_reconnect: boolean
+          circuit_cooldown_ms: number
+          circuit_failure_threshold: number
+          created_at: string
+          encryption_key: string
+          expiry_minutes: number
+          id: string
+          instance_id: string | null
+          log_level: string
+          phone_number: string | null
+          port: number | null
+          protocol: string
+          proxy_enabled: boolean
+          proxy_no_proxy: string[] | null
+          proxy_password: string | null
+          proxy_url: string | null
+          proxy_username: string | null
+          qr_refresh_seconds: number
+          rate_limit_burst: number
+          rate_limit_requests_per_minute: number
+          request_timeout_ms: number
+          retries_backoff_ms: number
+          retries_max_attempts: number
+          server_url: string
+          session_id: string
+          tenant_id: number
+          updated_at: string
+          webhook_attempts: number
+          webhook_delay_seconds: number
+          webhook_headers: Json | null
+          webhook_hmac_secret: string | null
+          webhook_policy: string
+        }
+        Insert: {
+          access_roles?: string[]
+          allowed_ips?: string[]
+          apply_strategy?: string
+          auto_reconnect?: boolean
+          circuit_cooldown_ms?: number
+          circuit_failure_threshold?: number
+          created_at?: string
+          encryption_key: string
+          expiry_minutes?: number
+          id?: string
+          instance_id?: string | null
+          log_level?: string
+          phone_number?: string | null
+          port?: number | null
+          protocol: string
+          proxy_enabled?: boolean
+          proxy_no_proxy?: string[] | null
+          proxy_password?: string | null
+          proxy_url?: string | null
+          proxy_username?: string | null
+          qr_refresh_seconds?: number
+          rate_limit_burst?: number
+          rate_limit_requests_per_minute?: number
+          request_timeout_ms?: number
+          retries_backoff_ms?: number
+          retries_max_attempts?: number
+          server_url: string
+          session_id: string
+          tenant_id: number
+          updated_at?: string
+          webhook_attempts?: number
+          webhook_delay_seconds?: number
+          webhook_headers?: Json | null
+          webhook_hmac_secret?: string | null
+          webhook_policy?: string
+        }
+        Update: {
+          access_roles?: string[]
+          allowed_ips?: string[]
+          apply_strategy?: string
+          auto_reconnect?: boolean
+          circuit_cooldown_ms?: number
+          circuit_failure_threshold?: number
+          created_at?: string
+          encryption_key?: string
+          expiry_minutes?: number
+          id?: string
+          instance_id?: string | null
+          log_level?: string
+          phone_number?: string | null
+          port?: number | null
+          protocol?: string
+          proxy_enabled?: boolean
+          proxy_no_proxy?: string[] | null
+          proxy_password?: string | null
+          proxy_url?: string | null
+          proxy_username?: string | null
+          qr_refresh_seconds?: number
+          rate_limit_burst?: number
+          rate_limit_requests_per_minute?: number
+          request_timeout_ms?: number
+          retries_backoff_ms?: number
+          retries_max_attempts?: number
+          server_url?: string
+          session_id?: string
+          tenant_id?: number
+          updated_at?: string
+          webhook_attempts?: number
+          webhook_delay_seconds?: number
+          webhook_headers?: Json | null
+          webhook_hmac_secret?: string | null
+          webhook_policy?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waha_session_configs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "evolution_instances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waha_session_configs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waha_session_logs: {
         Row: {
           action_type: string
@@ -2107,110 +2482,7 @@ export type Database = {
             foreignKeyName: "waha_session_logs_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
-            referencedRelation: "waha_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      waha_sessions: {
-        Row: {
-          agent_id: string | null
-          avg_response_time_ms: number | null
-          client_id: string
-          connected_at: string | null
-          created_at: string | null
-          disconnected_at: string | null
-          failed_messages: number | null
-          id: string
-          last_activity: string | null
-          last_error: string | null
-          last_error_at: string | null
-          last_message_at: string | null
-          phone_number: string | null
-          qr_code: string | null
-          qr_expires_at: string | null
-          reconnect_attempts: number | null
-          session_name: string
-          status: string | null
-          success_rate: number | null
-          tenant_id: number
-          total_messages_received: number | null
-          total_messages_sent: number | null
-          updated_at: string | null
-          webhook_url: string | null
-        }
-        Insert: {
-          agent_id?: string | null
-          avg_response_time_ms?: number | null
-          client_id: string
-          connected_at?: string | null
-          created_at?: string | null
-          disconnected_at?: string | null
-          failed_messages?: number | null
-          id?: string
-          last_activity?: string | null
-          last_error?: string | null
-          last_error_at?: string | null
-          last_message_at?: string | null
-          phone_number?: string | null
-          qr_code?: string | null
-          qr_expires_at?: string | null
-          reconnect_attempts?: number | null
-          session_name: string
-          status?: string | null
-          success_rate?: number | null
-          tenant_id: number
-          total_messages_received?: number | null
-          total_messages_sent?: number | null
-          updated_at?: string | null
-          webhook_url?: string | null
-        }
-        Update: {
-          agent_id?: string | null
-          avg_response_time_ms?: number | null
-          client_id?: string
-          connected_at?: string | null
-          created_at?: string | null
-          disconnected_at?: string | null
-          failed_messages?: number | null
-          id?: string
-          last_activity?: string | null
-          last_error?: string | null
-          last_error_at?: string | null
-          last_message_at?: string | null
-          phone_number?: string | null
-          qr_code?: string | null
-          qr_expires_at?: string | null
-          reconnect_attempts?: number | null
-          session_name?: string
-          status?: string | null
-          success_rate?: number | null
-          tenant_id?: number
-          total_messages_received?: number | null
-          total_messages_sent?: number | null
-          updated_at?: string | null
-          webhook_url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "waha_sessions_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "waha_sessions_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "whatsapp_clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "waha_sessions_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
+            referencedRelation: "evolution_instances"
             referencedColumns: ["id"]
           },
         ]
@@ -2468,6 +2740,43 @@ export type Database = {
         }
         Returns: number
       }
+      create_whatsapp_client: {
+        Args: {
+          p_cnpj: string
+          p_email: string
+          p_nome_empresa: string
+          p_telefone: string
+          p_whatsapp_numero: string
+        }
+        Returns: {
+          api_key: string | null
+          ativo: boolean | null
+          cnpj: string | null
+          created_at: string
+          data_inicio: string | null
+          data_vencimento: string | null
+          email: string
+          id: string
+          nome_empresa: string
+          plano_id: string | null
+          plano_nome: string | null
+          plano_valor: number | null
+          status_pagamento: string | null
+          telefone: string | null
+          tenant_id: number
+          updated_at: string
+          waha_session_id: string | null
+          waha_status: string | null
+          waha_webhook_url: string | null
+          whatsapp_numero: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "whatsapp_clients"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       criar_end_user_e_vinculos: {
         Args: {
           p_bot_message?: string
@@ -2516,6 +2825,23 @@ export type Database = {
           tenant_id: number
         }[]
       }
+      get_agent_quality_metrics: {
+        Args: { p_agent_id: string }
+        Returns: {
+          avg_response_time_ms: number
+          consistency_score: number
+          cost_per_response: number
+          failed_responses: number
+          hallucination_rate: number
+          last_evaluated_at: string
+          overall_score: number
+          recommendations: string[]
+          rules_compliance_score: number
+          successful_responses: number
+          total_responses: number
+          user_satisfaction_score: number
+        }[]
+      }
       get_cron_jobs: {
         Args: never
         Returns: {
@@ -2545,6 +2871,18 @@ export type Database = {
         Args: { p_email?: string; p_nome: string }
         Returns: number
       }
+      get_tenant_secret: {
+        Args: { p_secret_type: string; p_tenant_id: number }
+        Returns: string
+      }
+      get_tenant_secret_metadata: {
+        Args: { p_tenant_id: number }
+        Returns: {
+          secret_type: string
+          updated_at: string
+        }[]
+      }
+      get_tenant_secrets: { Args: { p_tenant_id: number }; Returns: Json }
       get_user_tenant_id: { Args: { _user_id: string }; Returns: number }
       has_tenant_role: {
         Args: {
@@ -2655,6 +2993,14 @@ export type Database = {
           p_execution_status: string
           p_execution_time_ms: number
           p_workflow_id: string
+        }
+        Returns: undefined
+      }
+      upsert_tenant_secret: {
+        Args: {
+          p_plaintext: string
+          p_secret_type: string
+          p_tenant_id: number
         }
         Returns: undefined
       }

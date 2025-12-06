@@ -89,7 +89,7 @@ export function SessionRecoveryWizard({
           const { qr } = await wahaClient.getQRCode(session.session_name);
           if (qr) {
             await supabase
-              .from('waha_sessions')
+              .from('evolution_instances')
               .update({ 
                 qr_code: qr,
                 qr_expires_at: new Date(Date.now() + 60000).toISOString()
@@ -108,7 +108,7 @@ export function SessionRecoveryWizard({
           await new Promise(resolve => setTimeout(resolve, 1000));
           
           await supabase
-            .from('waha_sessions')
+            .from('evolution_instances')
             .update({ status: 'connecting', reconnect_attempts: 0 })
             .eq('id', session.id);
           
