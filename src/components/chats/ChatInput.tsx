@@ -34,10 +34,10 @@ export function ChatInput({ chatId, sessionId, phone, onMessageSent }: ChatInput
 
     setSending(true);
     try {
-      // Buscar session_name da sessão
+      // Buscar instance_name da sessão
       const { data: sessionData, error: sessionError } = await supabase
-        .from('waha_sessions')
-        .select('session_name')
+        .from('evolution_instances')
+        .select('instance_name')
         .eq('id', sessionId)
         .single();
 
@@ -46,7 +46,7 @@ export function ChatInput({ chatId, sessionId, phone, onMessageSent }: ChatInput
       // Enviar mensagem via edge function
       const { error: sendError } = await supabase.functions.invoke('waha-send-message', {
         body: {
-          sessionName: sessionData.session_name,
+          sessionName: sessionData.instance_name,
           chatId: phone,
           text: message,
         }

@@ -46,13 +46,35 @@ export function useWahaSession(clientId?: string) {
       setLoading(true);
       
       const { data, error } = await supabase
-        .from('waha_sessions')
+        .from('evolution_instances')
         .select('*')
         .eq('client_id', clientId)
         .maybeSingle();
 
       if (error) throw error;
-      setSession(data);
+      
+      // Map evolution_instances fields to WahaSession type
+      if (data) {
+        setSession({
+          id: data.id,
+          tenant_id: data.tenant_id,
+          client_id: data.client_id,
+          agent_id: data.agent_id,
+          session_name: data.instance_name,
+          status: data.status || 'disconnected',
+          qr_code: data.qr_code,
+          qr_expires_at: data.qr_expires_at,
+          phone_number: data.phone_number,
+          webhook_url: data.webhook_url,
+          reconnect_attempts: data.reconnect_attempts,
+          last_activity: data.last_activity,
+          created_at: data.created_at,
+          connected_at: data.connected_at,
+          disconnected_at: data.disconnected_at,
+        });
+      } else {
+        setSession(null);
+      }
     } catch (error: any) {
       console.error('Erro ao carregar sessão:', error);
     } finally {
@@ -66,7 +88,7 @@ export function useWahaSession(clientId?: string) {
     try {
       setConnecting(true);
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://dffhhforfwhgzdlrfzpc.supabase.co';
+      const supabaseUrl = 'https://dffhhforfwhgzdlrfzpc.supabase.co';
       const webhookUrl = `${supabaseUrl}/functions/v1/waha-webhook`;
 
       const sessionData = await wahaClient.createSession({
@@ -80,12 +102,12 @@ export function useWahaSession(clientId?: string) {
       }
 
       const { data, error } = await supabase
-        .from('waha_sessions')
+        .from('evolution_instances')
         .insert({
           client_id: clientId,
           agent_id: agentId,
           tenant_id: tenantId,
-          session_name: sessionData.session_name,
+          instance_name: sessionData.session_name,
           status: mapWahaStatusToDb(sessionData.status),
           qr_code: sessionData.qr,
           webhook_url: webhookUrl
@@ -155,7 +177,7 @@ export function useWahaSession(clientId?: string) {
       const qrExpiresAt = result.expiresAt || new Date(Date.now() + 60000).toISOString();
 
       await supabase
-        .from('waha_sessions')
+        .from('evolution_instances')
         .update({ 
           qr_code: result.qr,
           qr_expires_at: qrExpiresAt
@@ -198,7 +220,7 @@ export function useWahaSession(clientId?: string) {
       await wahaClient.stopSession(session.session_name);
 
       await supabase
-        .from('waha_sessions')
+        .from('evolution_instances')
         .update({ 
           status: 'disconnected',
           disconnected_at: new Date().toISOString()
@@ -245,7 +267,7 @@ export function useWahaSession(clientId?: string) {
         if (mappedStatus === 'connected') {
           setRetryCount(0);
           await supabase
-            .from('waha_sessions')
+            .from('evolution_instances')
             .update({ 
               status: mappedStatus,
               reconnect_attempts: 0 
@@ -265,7 +287,7 @@ export function useWahaSession(clientId?: string) {
         } else {
           setRetryCount(prev => prev + 1);
           await supabase
-            .from('waha_sessions')
+            .from('evolution_instances')
             .update({ reconnect_attempts: retryCount + 1 })
             .eq('id', session.id);
         }
@@ -287,7 +309,7 @@ export function useWahaSession(clientId?: string) {
       
       if (mappedStatus !== session.status) {
         await supabase
-          .from('waha_sessions')
+          .from('evolution_instances')
           .update({ status: mappedStatus })
           .eq('id', session.id);
         

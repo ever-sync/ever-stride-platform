@@ -1,88 +1,18 @@
-import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useDashboardData } from "@/hooks/useDashboardData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, Users, Zap, DollarSign } from "lucide-react";
+import { MessageSquare, Users, Zap, DollarSign, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface DashboardStats {
-  totalChats: number;
-  totalMessages: number;
-  totalTokens: number;
-  monthlyCost: number;
-  activeModel: string;
-}
+import { Button } from "@/components/ui/button";
+import { TokenUsageChart } from "@/components/dashboard/TokenUsageChart";
+import { MonthlyCostChart } from "@/components/dashboard/MonthlyCostChart";
+import { ActivityHeatmap } from "@/components/dashboard/ActivityHeatmap";
+import { AgentHealthWidget } from "@/components/dashboard/AgentHealthWidget";
+import { SystemHealthWidget, defaultSystemStatuses } from "@/components/dashboard/SystemHealthWidget";
 
 export default function Dashboard() {
   const { userSession } = useAuth();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (userSession?.tenant) {
-      loadStats();
-    }
-  }, [userSession]);
-
-  const loadStats = async () => {
-    if (!userSession?.tenant?.id) return;
-
-    try {
-      const tenantId = userSession.tenant.id;
-
-      // Get total chats
-      const { count: chatCount } = await supabase
-        .from("chats")
-        .select("*", { count: "exact", head: true })
-        .eq("tenant_id", tenantId);
-
-      // Get total messages
-      const { count: messageCount } = await supabase
-        .from("chat_messages")
-        .select("*, chats!inner(tenant_id)", { count: "exact", head: true })
-        .eq("chats.tenant_id", tenantId);
-
-      // Get active IA config
-      const { data: iaConfig } = await supabase
-        .from("ia_config")
-        .select("modelo")
-        .eq("tenant_id", tenantId)
-        .eq("ativo", true)
-        .single();
-
-      // Get monthly cost
-      const now = new Date();
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      const { data: costData } = await supabase
-        .from("relatorios_custos")
-        .select("custo_final")
-        .eq("tenant_id", tenantId)
-        .gte("periodo_inicio", firstDay.toISOString())
-        .order("periodo_fim", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      // Get total tokens
-      const { data: execData } = await supabase
-        .from("relatorios_execucoes")
-        .select("total_tokens")
-        .eq("tenant_id", tenantId);
-
-      const totalTokens = execData?.reduce((sum, exec) => sum + (exec.total_tokens || 0), 0) || 0;
-
-      setStats({
-        totalChats: chatCount || 0,
-        totalMessages: messageCount || 0,
-        totalTokens,
-        monthlyCost: costData?.custo_final || 0,
-        activeModel: iaConfig?.modelo || "N/A",
-      });
-    } catch (error) {
-      console.error("Error loading stats:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { stats, tokenData, costData, heatmapData, agentHealth, loading, refresh } = useDashboardData();
 
   const statCards = [
     {
@@ -104,29 +34,42 @@ export default function Dashboard() {
       value: stats?.totalTokens.toLocaleString() || "0",
       icon: Zap,
       description: `Modelo: ${stats?.activeModel}`,
-      color: "text-warning",
+      color: "text-yellow-500",
     },
     {
       title: "Custo Mensal",
-      value: `R$ ${stats?.monthlyCost.toFixed(2)}`,
+      value: `R$ ${stats?.monthlyCost.toFixed(2) || "0.00"}`,
       icon: DollarSign,
       description: "Mês atual",
-      color: "text-success",
+      color: "text-green-500",
     },
   ];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Bem-vindo, {userSession?.profile?.full_name}!
-        </p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">
+            Bem-vindo, {userSession?.profile?.full_name}!
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={refresh}
+          disabled={loading}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          Atualizar
+        </Button>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {statCards.map((card) => (
-          <Card key={card.title} className="transition-smooth hover:shadow-md">
+          <Card key={card.title} className="transition-all hover:shadow-md hover:scale-[1.02]">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
               <card.icon className={`h-5 w-5 ${card.color}`} />
@@ -145,12 +88,26 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Charts Row */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <TokenUsageChart data={tokenData} loading={loading} />
+        <MonthlyCostChart data={costData} loading={loading} />
+      </div>
+
+      {/* Heatmap & Widgets Row */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <ActivityHeatmap data={heatmapData} loading={loading} />
+        <AgentHealthWidget agents={agentHealth} loading={loading} />
+        <SystemHealthWidget statuses={defaultSystemStatuses} loading={loading} />
+      </div>
+
+      {/* Organization Info */}
       <Card>
         <CardHeader>
           <CardTitle>Visão Geral</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <div>
               <h3 className="font-semibold mb-2">Organização</h3>
               <p className="text-sm text-muted-foreground">{userSession?.tenant?.nome}</p>
