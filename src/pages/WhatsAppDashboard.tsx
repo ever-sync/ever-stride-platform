@@ -22,29 +22,12 @@ import { BulkOperationProgress } from '@/components/whatsapp/BulkOperationProgre
 import { SessionRecoveryWizard } from '@/components/whatsapp/SessionRecoveryWizard'
 import { wahaClient } from '@/lib/waha-client'
 import { executeBulkOperation } from '@/lib/bulk-operations'
+import { WahaSession as BaseWahaSession } from '@/types/waha'
 import QRCode from 'react-qr-code'
 
-type WahaSession = {
-  id: string
-  session_name: string
-  status: string
-  client_id: string
-  phone_number?: string
-  qr_code?: string
-  tenant_id: number
-  agent_id?: string
-  created_at: string
-  updated_at: string
-  connected_at?: string
-  disconnected_at?: string
-  last_activity?: string
-  last_message_at?: string
-  total_messages_sent: number
-  total_messages_received: number
-  qr_expires_at?: string
-  reconnect_attempts: number
-  webhook_url?: string
-  whatsapp_clients: {
+// Extended type with optional whatsapp_clients
+interface WahaSession extends BaseWahaSession {
+  whatsapp_clients?: {
     nome_empresa: string
   }
 }
@@ -104,13 +87,13 @@ export default function WhatsAppDashboard() {
   // Realtime para sessões WhatsApp
   useEffect(() => {
     const channel = supabase
-      .channel('waha_sessions_changes')
+      .channel('evolution_instances_changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'waha_sessions'
+          table: 'evolution_instances'
         },
         (payload) => {
           console.log('Session change:', payload)
@@ -122,7 +105,7 @@ export default function WhatsAppDashboard() {
             const sessionData = payload.new as WahaSession
             
             if ((oldStatus === 'WORKING' || oldStatus === 'connected') && newStatus === 'disconnected') {
-              console.log('Unexpected disconnection detected for:', sessionData.session_name)
+              console.log('Unexpected disconnection detected for:', sessionData.instance_name)
               setDisconnectedSessions(prev => {
                 if (!prev.find(s => s.id === sessionData.id)) {
                   return [...prev, sessionData]
@@ -134,7 +117,7 @@ export default function WhatsAppDashboard() {
           
           loadSessions()
           
-          const sessionName = (payload.new as any)?.session_name || 'desconhecida'
+          const sessionName = (payload.new as any)?.instance_name || 'desconhecida'
           toast({
             title: 'Atualização em tempo real',
             description: `Sessão ${sessionName} atualizada`,
@@ -160,7 +143,7 @@ export default function WhatsAppDashboard() {
 
   const loadSessions = async () => {
     const { data, error } = await supabase
-      .from('waha_sessions')
+      .from('evolution_instances')
       .select(`
         *,
         whatsapp_clients (
@@ -174,7 +157,13 @@ export default function WhatsAppDashboard() {
       return
     }
 
-    setSessions((data || []) as WahaSession[])
+    // Map data to include session_name alias
+    const mappedData = (data || []).map(item => ({
+      ...item,
+      session_name: item.instance_name, // Add alias for compatibility
+    })) as WahaSession[]
+    
+    setSessions(mappedData)
   }
 
   const loadMetrics = async () => {
@@ -248,7 +237,7 @@ export default function WhatsAppDashboard() {
       if (error) throw error
       
       await supabase
-        .from('waha_sessions')
+        .from('evolution_instances')
         .update({ status: 'disconnected', disconnected_at: new Date().toISOString() })
         .eq('id', session.id)
       
@@ -275,7 +264,7 @@ export default function WhatsAppDashboard() {
       
       if (status === 'WORKING') {
         await supabase
-          .from('waha_sessions')
+          .from('evolution_instances')
           .update({ status: 'connected', reconnect_attempts: 0 })
           .eq('id', session.id)
         
@@ -313,7 +302,7 @@ export default function WhatsAppDashboard() {
         const qrExpiresAt = expiresAt || new Date(Date.now() + 60000).toISOString()
         
         await supabase
-          .from('waha_sessions')
+          .from('evolution_instances')
           .update({ 
             qr_code: qr,
             qr_expires_at: qrExpiresAt
